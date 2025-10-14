@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Autostock - SuperAdmin - Detalle Negocio</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Header -->
+        <header class="dashboard-header superadmin-header">
+            <div class="header-content">
+                <h1>Autostock - Detalle del Negocio</h1>
+                <div class="user-info">
+                    <a href="/superadmin/negocios" class="btn btn-secondary">← Volver a Negocios</a>
+                    <form action="/logout" method="post" style="display: inline;">
+                        <button type="submit" class="btn btn-secondary">Cerrar Sesión</button>
+                    </form>
+                </div>
+            </div>
+        </header>
+
+        <!-- Navigation -->
+        <nav class="dashboard-nav">
+            <a href="/superadmin/dashboard" class="nav-link">Dashboard</a>
+            <a href="/superadmin/negocios" class="nav-link active">Negocios</a>
+            <a href="/superadmin/planes" class="nav-link">Planes</a>
+            <a href="/superadmin/backups" class="nav-link">Backups</a>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="dashboard-main">
+            <div class="business-header">
+                <h2>{{ negocio.nombre_negocio }}</h2>
+                <div class="business-status">
+                    <span class="status-badge status-{{ negocio.estado_suscripcion }}">
+                        {{ negocio.estado_suscripcion }}
+                    </span>
+                </div>
+            </div>
+
+            <div class="business-info">
+                <div class="info-card">
+                    <h3>Información General</h3>
+                    <p><strong>Propietario:</strong> {{ negocio.propietario }}</p>
+                    <p><strong>Fecha de Registro:</strong> {{ negocio.fecha_registro.strftime('%d/%m/%Y %H:%M') }}</p>
+                    <p><strong>Plan:</strong> {{ negocio.plan.nombre_plan if negocio.plan else 'Sin plan' }}</p>
+                    <p><strong>Vencimiento:</strong> {{ negocio.fecha_vencimiento.strftime('%d/%m/%Y') if negocio.fecha_vencimiento else 'N/A' }}</p>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h3>Total Usuarios</h3>
+                        <div class="stat-number">{{ usuarios|length }}</div>
+                    </div>
+
+                    <div class="stat-card">
+                        <h3>Total Productos</h3>
+                        <div class="stat-number">{{ total_productos }}</div>
+                    </div>
+
+                    <div class="stat-card">
+                        <h3>Total Ventas</h3>
+                        <div class="stat-number">${{ "%.0f"|format(total_ventas) }}</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-section">
+                <h3>Usuarios del Negocio</h3>
+                <div class="user-info-section">
+                    <div class="user-credentials">
+                        <h4>Credenciales de Acceso</h4>
+                        <div class="credentials-grid">
+                            {% for usuario in usuarios %}
+                            <div class="credential-card">
+                                <h5>{{ usuario.nombre_usuario }}</h5>
+                                <p><strong>Rol:</strong> {{ usuario.rol }}</p>
+                                <p><strong>Estado:</strong>
+                                    <span class="status-badge status-{{ usuario.estado }}">
+                                        {{ usuario.estado }}
+                                    </span>
+                                </p>
+                                <p><strong>Contraseña:</strong>
+                                    {% if usuario.rol == 'admin' %}
+                                        admin123
+                                    {% else %}
+                                        vendedor123
+                                    {% endif %}
+                                </p>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <style>
+        .business-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding: 1.5rem;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .business-header h2 {
+            margin: 0;
+            color: #1A2238;
+        }
+
+        .business-info {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .info-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .info-card h3 {
+            color: #1A2238;
+            margin-bottom: 1rem;
+        }
+
+        .info-card p {
+            margin-bottom: 0.5rem;
+            color: #666;
+        }
+
+        .user-info-section {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .user-credentials h4 {
+            color: #1A2238;
+            margin-bottom: 1rem;
+        }
+
+        .credentials-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+        }
+
+        .credential-card {
+            border: 1px solid #E0E3E7;
+            border-radius: 8px;
+            padding: 1rem;
+            background: #F8F9FA;
+        }
+
+        .credential-card h5 {
+            margin: 0 0 0.5rem 0;
+            color: #1A2238;
+            font-size: 1.1rem;
+        }
+
+        .credential-card p {
+            margin: 0.25rem 0;
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .credential-card p strong {
+            color: #1A2238;
+        }
+
+        @media (min-width: 768px) {
+            .business-info {
+                grid-template-columns: 1fr 2fr;
+            }
+        }
+    </style>
+
+    <script src="/static/js/main.js"></script>
+</body>
+</html>

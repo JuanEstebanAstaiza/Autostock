@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Autostock - Vendedor - Historial</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Header -->
+        <header class="dashboard-header vendedor-header">
+            <div class="header-content">
+                <h1>Autostock - Mi Historial de Ventas</h1>
+                <div class="user-info">
+                    <a href="/vendedor/dashboard" class="btn btn-secondary">← Volver al Dashboard</a>
+                    <form action="/logout" method="post" style="display: inline;">
+                        <button type="submit" class="btn btn-secondary">Cerrar Sesión</button>
+                    </form>
+                </div>
+            </div>
+        </header>
+
+        <!-- Navigation -->
+        <nav class="dashboard-nav">
+            <a href="/vendedor/dashboard" class="nav-link">Dashboard</a>
+            <a href="/vendedor/inventario" class="nav-link">Inventario</a>
+            <a href="/vendedor/ventas" class="nav-link">Registrar Venta</a>
+            <a href="/vendedor/ventas/historial" class="nav-link active">Mi Historial</a>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="dashboard-main">
+            <div class="content-section">
+                <h2>Mis Ventas Registradas</h2>
+
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Producto</th>
+                                <th>Cantidad</th>
+                                <th>Precio Unitario</th>
+                                <th>Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for venta in ventas %}
+                            <tr>
+                                <td>{{ venta.fecha_venta.strftime('%d/%m/%Y %H:%M') }}</td>
+                                <td>{{ venta.producto.nombre }}</td>
+                                <td>{{ venta.cantidad_vendida }}</td>
+                                <td>${{ "%.0f"|format(venta.producto.precio) }}</td>
+                                <td>${{ "%.0f"|format(venta.valor_total) }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="/static/js/main.js"></script>
+</body>
+</html>

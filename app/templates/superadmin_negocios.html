@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Autostock - SuperAdmin - Negocios</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Header -->
+        <header class="dashboard-header superadmin-header">
+            <div class="header-content">
+                <h1>Autostock - Gestión de Negocios</h1>
+                <div class="user-info">
+                    <a href="/superadmin/dashboard" class="btn btn-secondary">← Volver al Dashboard</a>
+                    <form action="/logout" method="post" style="display: inline;">
+                        <button type="submit" class="btn btn-secondary">Cerrar Sesión</button>
+                    </form>
+                </div>
+            </div>
+        </header>
+
+        <!-- Navigation -->
+        <nav class="dashboard-nav">
+            <a href="/superadmin/dashboard" class="nav-link">Dashboard</a>
+            <a href="/superadmin/negocios" class="nav-link active">Negocios</a>
+            <a href="/superadmin/planes" class="nav-link">Planes</a>
+            <a href="/superadmin/backups" class="nav-link">Backups</a>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="dashboard-main">
+            <div class="content-section">
+                <div class="section-header">
+                    <h2>Negocios Registrados</h2>
+                    <div class="header-actions">
+                        <div class="filters">
+                            <input type="text" id="search-negocios" placeholder="Buscar negocios..." class="form-control">
+                            <select id="filter-status" class="form-control">
+                                <option value="all">Todos los estados</option>
+                                <option value="activo">Activos</option>
+                                <option value="suspendido">Suspendidos</option>
+                                <option value="vencido">Vencidos</option>
+                            </select>
+                        </div>
+                        <button class="btn btn-primary" onclick="showModal('negocio-modal')">Crear Nuevo Negocio</button>
+                    </div>
+                </div>
+
+                <div class="table-container superadmin-table" style="position: relative;">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Nombre</th>
+                                <th>Propietario</th>
+                                <th>Estado</th>
+                                <th>Plan</th>
+                                <th>Fecha Registro</th>
+                                <th>Vencimiento</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for negocio in negocios %}
+                            <tr class="business-row" data-status="{{ negocio.estado_suscripcion }}">
+                                <td>{{ negocio.id }}</td>
+                                <td>{{ negocio.nombre_negocio }}</td>
+                                <td>{{ negocio.propietario }}</td>
+                                <td>
+                                    <span class="status-badge status-{{ negocio.estado_suscripcion }}">
+                                        {{ negocio.estado_suscripcion }}
+                                    </span>
+                                </td>
+                                <td>{{ negocio.plan.nombre_plan if negocio.plan else 'Sin plan' }}</td>
+                                <td>{{ negocio.fecha_registro.strftime('%d/%m/%Y') }}</td>
+                                <td>{{ negocio.fecha_vencimiento.strftime('%d/%m/%Y') if negocio.fecha_vencimiento else 'N/A' }}</td>
+                                <td>
+                                    <a href="/superadmin/negocios/{{ negocio.id }}" class="btn btn-sm">Ver</a>
+                                    <div class="dropdown">
+                                        <button class="btn btn-sm dropdown-toggle">Acciones</button>
+                                        <div class="dropdown-menu">
+                                            <form action="/superadmin/negocios/{{ negocio.id }}/estado" method="post" style="display: inline;">
+                                                <input type="hidden" name="estado" value="activo">
+                                                <button type="submit" class="dropdown-item">Activar</button>
+                                            </form>
+                                            <form action="/superadmin/negocios/{{ negocio.id }}/estado" method="post" style="display: inline;">
+                                                <input type="hidden" name="estado" value="suspendido">
+                                                <button type="submit" class="dropdown-item">Suspender</button>
+                                            </form>
+                                            <form action="/superadmin/negocios/{{ negocio.id }}/reset-password" method="post" style="display: inline;">
+                                                <button type="submit" class="dropdown-item">Reset Password</button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <style>
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2.5rem;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+        }
+
+        .section-header h2 {
+            margin: 0;
+            color: #1A2238;
+            font-size: 2rem;
+            font-weight: 700;
+            border-bottom: 3px solid #3AB795;
+            padding-bottom: 0.75rem;
+        }
+
+        .filters {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .form-control {
+            padding: 0.75rem 1rem;
+            border: 1px solid #E0E3E7;
+            border-radius: 6px;
+            font-size: 1rem;
+            min-width: 220px;
+        }
+
+        /* Tabla específica para superadmin negocios - MÁS GRANDE */
+        .superadmin-table .data-table {
+            font-size: 1.2rem;
+            border-spacing: 0;
+            width: 100%;
+        }
+
+        .superadmin-table .data-table th,
+        .superadmin-table .data-table td {
+            padding: 1.75rem 2rem;
+            border-bottom: 2px solid #E0E3E7;
+            vertical-align: middle;
+            text-align: left;
+        }
+
+        .superadmin-table .data-table th {
+            font-size: 0.95rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            height: 70px;
+            background-color: #1A2238 !important;
+            color: white !important;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .superadmin-table .data-table tbody tr {
+            height: 80px;
+            transition: all 0.3s ease;
+        }
+
+        .superadmin-table .data-table tbody tr:hover {
+            background-color: rgba(26, 34, 56, 0.08);
+            transform: scale(1.01);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .superadmin-table .data-table tbody tr:nth-child(even) {
+            background-color: rgba(26, 34, 56, 0.03);
+        }
+
+        .dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .dropdown-toggle {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            transition: background-color 0.3s ease;
+        }
+
+        .dropdown-toggle:hover {
+            background-color: rgba(26, 34, 56, 0.1);
+        }
+
+        .dropdown-menu {
+            display: none;
+            position: absolute;
+            background-color: white;
+            min-width: 180px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+            z-index: 10;
+            border-radius: 6px;
+            border: 1px solid #E0E3E7;
+            top: 100%;
+            right: 0;
+            margin-top: 2px;
+            overflow: hidden;
+            opacity: 0;
+            transform: translateY(-4px);
+            transition: all 0.15s ease;
+            pointer-events: none;
+        }
+
+
+        .dropdown-item {
+            padding: 0.875rem 1.25rem;
+            text-decoration: none;
+            display: block;
+            color: #1A2238;
+            border: none;
+            background: none;
+            width: 100%;
+            text-align: left;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+            font-size: 0.9rem;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+        }
+
+        .dropdown-item:last-child {
+            border-bottom: none;
+        }
+
+        .dropdown-item:hover {
+            background-color: rgba(26, 34, 56, 0.05);
+            color: #1A2238;
+        }
+
+        .dropdown-item:first-child:hover {
+            background-color: rgba(58, 183, 149, 0.1);
+        }
+
+        .dropdown.show .dropdown-menu {
+            display: block;
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: auto;
+        }
+    </style>
+
+    <script src="/static/js/main.js"></script>
+    <script>
+        // Función de búsqueda
+        document.getElementById('search-negocios').addEventListener('input', function() {
+            const query = this.value.toLowerCase();
+            const rows = document.querySelectorAll('.business-row');
+
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(query) ? '' : 'none';
+            });
+        });
+
+        // Función de filtro por estado
+        document.getElementById('filter-status').addEventListener('change', function() {
+            const status = this.value;
+            const rows = document.querySelectorAll('.business-row');
+
+            rows.forEach(row => {
+                if (status === 'all') {
+                    row.style.display = '';
+                } else {
+                    row.style.display = row.dataset.status === status ? '' : 'none';
+                }
+            });
+        });
+
+        // Funcionalidad del dropdown con click
+        document.addEventListener('click', function(e) {
+            // Cerrar todos los dropdowns cuando se hace click fuera
+            if (!e.target.closest('.dropdown')) {
+                document.querySelectorAll('.dropdown').forEach(dropdown => {
+                    dropdown.classList.remove('show');
+                });
+            }
+
+            // Toggle del dropdown cuando se hace click en el botón
+            if (e.target.closest('.dropdown-toggle')) {
+                e.preventDefault();
+                const dropdown = e.target.closest('.dropdown');
+
+                // Cerrar otros dropdowns primero
+                document.querySelectorAll('.dropdown').forEach(d => {
+                    if (d !== dropdown) {
+                        d.classList.remove('show');
+                    }
+                });
+
+                // Toggle este dropdown
+                dropdown.classList.toggle('show');
+            }
+        });
+
+        // Funciones del modal de negocio
+        function showModal(modalId) {
+            document.getElementById(modalId).style.display = 'block';
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        // Cerrar modal al hacer click fuera
+        window.onclick = function(event) {
+            const modals = document.getElementsByClassName('modal');
+            for (let modal of modals) {
+                if (event.target == modal) {
+                    modal.style.display = 'none';
+                }
+            }
+        }
+    </script>
+
+    <!-- Modal para crear negocio -->
+    <div id="negocio-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Crear Nuevo Negocio</h3>
+                <span class="modal-close" onclick="closeModal('negocio-modal')">&times;</span>
+            </div>
+            <form action="/superadmin/negocios" method="post">
+                <div class="form-group">
+                    <label for="nombre_negocio">Nombre del Negocio</label>
+                    <input type="text" id="nombre_negocio" name="nombre_negocio" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="propietario">Nombre del Propietario</label>
+                    <input type="text" id="propietario" name="propietario" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="plan_id">Plan de Suscripción</label>
+                    <select id="plan_id" name="plan_id" required>
+                        <option value="">Seleccione un plan</option>
+                        {% for plan in planes %}
+                        <option value="{{ plan.id }}">{{ plan.nombre_plan }} - ${{ "%.0f"|format(plan.precio) }}/mes</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="admin_username">Usuario Administrador</label>
+                    <input type="text" id="admin_username" name="admin_username" required>
+                    <small class="form-help">Contraseña inicial: admin123</small>
+                </div>
+
+                <div class="modal-info">
+                    <h4>Información del Negocio</h4>
+                    <ul>
+                        <li>Se creará automáticamente un usuario administrador</li>
+                        <li>Se creará un vendedor de ejemplo para pruebas</li>
+                        <li>Se agregarán productos de ejemplo (llantas, aceites, filtros, baterías)</li>
+                        <li>El negocio comenzará con suscripción activa</li>
+                    </ul>
+                </div>
+
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('negocio-modal')">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Crear Negocio</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal para crear/editar plan -->
+    <div id="plan-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-title">Crear Nuevo Plan</h3>
+                <span class="modal-close" onclick="closeModal('plan-modal')">&times;</span>
+            </div>
+            <form id="plan-form" action="/superadmin/planes" method="post">
+                <input type="hidden" id="plan-id" name="id" value="">
+
+                <div class="form-group">
+                    <label for="nombre_plan">Nombre del Plan</label>
+                    <input type="text" id="nombre_plan" name="nombre_plan" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="descripcion">Descripción</label>
+                    <textarea id="descripcion" name="descripcion" rows="3"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="precio">Precio ($)</label>
+                    <input type="number" id="precio" name="precio" step="0.01" min="0" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="duracion_dias">Duración (días)</label>
+                    <input type="number" id="duracion_dias" name="duracion_dias" min="1" required>
+                </div>
+
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('plan-modal')">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Guardar Plan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

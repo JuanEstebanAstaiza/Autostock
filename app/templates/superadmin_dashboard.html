@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Autostock - SuperAdmin Dashboard</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Header -->
+        <header class="dashboard-header superadmin-header">
+            <div class="header-content">
+                <h1>Autostock - SuperAdministrador</h1>
+                <div class="user-info">
+                    <span>Bienvenido, SuperAdmin</span>
+                    <form action="/logout" method="post" style="display: inline;">
+                        <button type="submit" class="btn btn-secondary">Cerrar Sesión</button>
+                    </form>
+                </div>
+            </div>
+        </header>
+
+        <!-- Navigation -->
+        <nav class="dashboard-nav">
+            <a href="/superadmin/dashboard" class="nav-link active">Dashboard</a>
+            <a href="/superadmin/negocios" class="nav-link">Negocios</a>
+            <a href="/superadmin/planes" class="nav-link">Planes</a>
+            <a href="/superadmin/backups" class="nav-link">Backups</a>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="dashboard-main">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h3>Total Negocios</h3>
+                    <div class="stat-number">{{ total_negocios }}</div>
+                </div>
+
+                <div class="stat-card">
+                    <h3>Negocios Activos</h3>
+                    <div class="stat-number">{{ negocios_activos }}</div>
+                </div>
+
+                <div class="stat-card">
+                    <h3>Total Usuarios</h3>
+                    <div class="stat-number">{{ total_usuarios }}</div>
+                </div>
+
+                <div class="stat-card">
+                    <h3>Ventas Globales</h3>
+                    <div class="stat-number">${{ total_ventas }}</div>
+                </div>
+
+                <div class="stat-card">
+                    <h3>Ventas del Mes</h3>
+                    <div class="stat-number">${{ ventas_mes }}</div>
+                </div>
+            </div>
+
+            <div class="content-section">
+                <h2>Negocios Recientes</h2>
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Nombre</th>
+                                <th>Propietario</th>
+                                <th>Estado</th>
+                                <th>Fecha Registro</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for negocio in negocios_recientes %}
+                            <tr>
+                                <td>{{ negocio.nombre_negocio }}</td>
+                                <td>{{ negocio.propietario }}</td>
+                                <td>
+                                    <span class="status-badge status-{{ negocio.estado_suscripcion }}">
+                                        {{ negocio.estado_suscripcion }}
+                                    </span>
+                                </td>
+                                <td>{{ negocio.fecha_registro.strftime('%d/%m/%Y') }}</td>
+                                <td>
+                                    <a href="/superadmin/negocios/{{ negocio.id }}" class="btn btn-sm">Ver</a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="/static/js/superadmin.js"></script>
+</body>
+</html>

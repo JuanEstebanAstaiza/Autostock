@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Autostock - Admin Dashboard</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <style>
+        /* Estilos específicos para el dashboard del admin */
+        .admin-dashboard .data-table {
+            min-width: auto !important;
+            width: 100% !important;
+            table-layout: fixed;
+            border-collapse: collapse;
+        }
+
+        .admin-dashboard .table-container {
+            overflow-x: auto;
+            width: 100%;
+        }
+
+        .admin-dashboard .data-table th,
+        .admin-dashboard .data-table td {
+            padding: 0.75rem 0.5rem;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
+
+        .admin-dashboard .data-table th {
+            font-size: 0.85rem;
+            padding: 1rem 0.5rem;
+        }
+
+        /* Botones de acción */
+        .dashboard-actions {
+            margin-top: 2rem;
+        }
+
+        .action-buttons-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .action-button {
+            display: flex;
+            align-items: center;
+            padding: 1.5rem;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+            text-decoration: none;
+            color: inherit;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .action-button:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+            border-color: #3AB795;
+        }
+
+        .action-icon {
+            font-size: 2.5rem;
+            margin-right: 1rem;
+            opacity: 0.8;
+        }
+
+        .action-content h3 {
+            margin: 0 0 0.5rem 0;
+            color: #1A2238;
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .action-content p {
+            margin: 0;
+            color: #666;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+
+        /* Botones responsive */
+        @media (min-width: 640px) {
+            .action-buttons-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 2rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .dashboard-main {
+                padding: 1rem;
+            }
+
+            .action-buttons-grid {
+                gap: 1rem;
+            }
+
+            .action-button {
+                padding: 1.25rem;
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .action-icon {
+                margin-right: 0;
+                margin-bottom: 0.5rem;
+            }
+
+            .action-content h3 {
+                font-size: 1.1rem;
+            }
+
+            .action-content p {
+                font-size: 0.85rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .action-button {
+                padding: 1rem;
+            }
+
+            .action-icon {
+                font-size: 2rem;
+            }
+
+            .action-content h3 {
+                font-size: 1rem;
+            }
+
+            .action-content p {
+                font-size: 0.8rem;
+            }
+        }
+    </style>
+</head>
+<body class="admin-dashboard">
+    <div class="dashboard-container">
+        <!-- Header -->
+        <header class="dashboard-header admin-header">
+            <div class="header-content">
+                <h1>Autostock - Administrador</h1>
+                <div class="user-info">
+                    <span>Panel de Gestión</span>
+                    <form action="/logout" method="post" style="display: inline;">
+                        <button type="submit" class="btn btn-secondary">Cerrar Sesión</button>
+                    </form>
+                </div>
+            </div>
+        </header>
+
+        <!-- Navigation -->
+        <nav class="dashboard-nav">
+            <a href="/negocio/dashboard" class="nav-link active">Dashboard</a>
+            <a href="/negocio/inventario" class="nav-link">Inventario</a>
+            <a href="/negocio/ventas" class="nav-link">Ventas</a>
+            <a href="/negocio/usuarios" class="nav-link">Usuarios</a>
+            <a href="/negocio/reportes" class="nav-link">Reportes</a>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="dashboard-main">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h3>Total Productos</h3>
+                    <div class="stat-number">{{ total_productos }}</div>
+                </div>
+
+                <div class="stat-card">
+                    <h3>Productos con Stock Bajo</h3>
+                    <div class="stat-number">{{ productos_bajo_stock }}</div>
+                </div>
+
+                <div class="stat-card">
+                    <h3>Ventas del Día</h3>
+                    <div class="stat-number">${{ ventas_hoy }}</div>
+                </div>
+
+                <div class="stat-card">
+                    <h3>Ventas del Mes</h3>
+                    <div class="stat-number">${{ ventas_mes }}</div>
+                </div>
+            </div>
+
+            <div class="dashboard-actions">
+                <div class="action-buttons-grid">
+                    <a href="/negocio/reportes/productos-vendidos" class="action-button">
+                        <div class="action-icon">📊</div>
+                        <div class="action-content">
+                            <h3>Productos Más Vendidos</h3>
+                            <p>Ver estadísticas de productos populares en los últimos 30 días</p>
+                        </div>
+                    </a>
+
+                    <a href="/negocio/reportes/ventas-recientes" class="action-button">
+                        <div class="action-icon">💰</div>
+                        <div class="action-content">
+                            <h3>Ventas Recientes</h3>
+                            <p>Historial completo de ventas con gráficos y análisis</p>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="/static/js/admin.js"></script>
+    <script>
+        // Animaciones para botones de acción
+        document.addEventListener('DOMContentLoaded', function() {
+            const actionButtons = document.querySelectorAll('.action-button');
+            actionButtons.forEach((button, index) => {
+                button.style.opacity = '0';
+                button.style.transform = 'translateY(20px)';
+                button.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
+
+                setTimeout(() => {
+                    button.style.opacity = '1';
+                    button.style.transform = 'translateY(0)';
+                }, index * 100);
+            });
+
+            // Mejorar la experiencia en móviles
+            if (window.innerWidth <= 768) {
+                const statCards = document.querySelectorAll('.stat-card');
+                statCards.forEach((card, index) => {
+                    card.style.animationDelay = `${index * 0.1}s`;
+                    card.style.animation = 'fadeInUp 0.5s ease forwards';
+                });
+            }
+        });
+
+        // Animación fadeInUp para móviles
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes fadeInUp {
+                from {
+                    opacity: 0;
+                    transform: translateY(20px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>

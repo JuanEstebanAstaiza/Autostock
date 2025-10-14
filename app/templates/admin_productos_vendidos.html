@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Autostock - Admin - Productos Más Vendidos</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <style>
+        /* Estilos específicos para productos vendidos */
+        .productos-chart {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .producto-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+            border-left: 4px solid #3AB795;
+            transition: transform 0.3s ease;
+        }
+
+        .producto-card:hover {
+            transform: translateY(-2px);
+        }
+
+        .producto-card h4 {
+            margin: 0 0 0.5rem 0;
+            color: #1A2238;
+            font-size: 1.1rem;
+        }
+
+        .producto-stats {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 1rem;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #1A2238;
+            display: block;
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .productos-table-container {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+            margin-top: 2rem;
+        }
+
+        .productos-table-container h3 {
+            margin-bottom: 1.5rem;
+            color: #1A2238;
+            border-bottom: 2px solid #3AB795;
+            padding-bottom: 0.5rem;
+        }
+
+        .productos-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .productos-table th,
+        .productos-table td {
+            padding: 1rem 1.25rem;
+            text-align: left;
+            border-bottom: 1px solid #E0E3E7;
+        }
+
+        .productos-table th {
+            background-color: #1A2238;
+            color: white;
+            font-weight: 600;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .productos-table tbody tr:hover {
+            background-color: rgba(26, 34, 56, 0.04);
+        }
+
+        .rank-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #3AB795, #F6AE2D);
+            color: white;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
+        .ventas-badge {
+            background: #E0E3E7;
+            color: #1A2238;
+            padding: 0.25rem 0.5rem;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .productos-chart {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+
+            .producto-card {
+                padding: 1rem;
+            }
+
+            .productos-table-container {
+                padding: 1rem;
+            }
+
+            .productos-table th,
+            .productos-table td {
+                padding: 0.75rem 0.5rem;
+                font-size: 0.85rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .productos-table th:nth-child(1),
+            .productos-table td:nth-child(1) {
+                display: none;
+            }
+
+            .productos-table th:nth-child(2),
+            .productos-table td:nth-child(2) {
+                width: 60%;
+            }
+
+            .productos-table th:nth-child(3),
+            .productos-table td:nth-child(3) {
+                width: 40%;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body class="admin-dashboard">
+    <div class="dashboard-container">
+        <!-- Header -->
+        <header class="dashboard-header admin-header">
+            <div class="header-content">
+                <h1>Autostock - Productos Más Vendidos</h1>
+                <div class="user-info">
+                    <a href="/negocio/dashboard" class="btn btn-secondary">← Volver al Dashboard</a>
+                    <form action="/logout" method="post" style="display: inline;">
+                        <button type="submit" class="btn btn-secondary">Cerrar Sesión</button>
+                    </form>
+                </div>
+            </div>
+        </header>
+
+        <!-- Navigation -->
+        <nav class="dashboard-nav">
+            <a href="/negocio/dashboard" class="nav-link">Dashboard</a>
+            <a href="/negocio/inventario" class="nav-link">Inventario</a>
+            <a href="/negocio/ventas" class="nav-link">Ventas</a>
+            <a href="/negocio/usuarios" class="nav-link">Usuarios</a>
+            <a href="/negocio/reportes/productos-vendidos" class="nav-link active">Reportes</a>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="dashboard-main">
+            <div class="content-section">
+                <h2>📊 Productos Más Vendidos (Últimos 30 días)</h2>
+
+                <!-- Vista de tarjetas para los top productos -->
+                <div class="productos-chart">
+                    {% for producto in productos_top[:5] %}
+                    <div class="producto-card">
+                        <div class="rank-badge">{{ loop.index }}</div>
+                        <h4>{{ producto[0] }}</h4>
+                        <div class="producto-stats">
+                            <div class="stat-item">
+                                <span class="stat-number">{{ producto[1] }}</span>
+                                <span class="stat-label">Unidades</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-number">${{ "%.0f"|format(producto[2]) }}</span>
+                                <span class="stat-label">Total</span>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Tabla completa -->
+                <div class="productos-table-container">
+                    <h3>📋 Ranking Completo</h3>
+                    <div class="table-container">
+                        <table class="productos-table data-table">
+                            <thead>
+                                <tr>
+                                    <th style="width: 10%;">Ranking</th>
+                                    <th style="width: 50%;">Producto</th>
+                                    <th style="width: 20%;">Unidades Vendidas</th>
+                                    <th style="width: 20%;">Total Generado</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for producto in productos_top %}
+                                <tr>
+                                    <td>
+                                        <div class="rank-badge">{{ loop.index }}</div>
+                                    </td>
+                                    <td>{{ producto[0] }}</td>
+                                    <td>
+                                        <span class="ventas-badge">{{ producto[1] }} unidades</span>
+                                    </td>
+                                    <td><strong>${{ "%.0f"|format(producto[2]) }}</strong></td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="/static/js/main.js"></script>
+</body>
+</html>

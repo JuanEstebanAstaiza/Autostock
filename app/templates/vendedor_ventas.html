@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Autostock - Registrar Venta</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <style>
+        /* Estilos específicos para formulario de ventas del vendedor más grande */
+        .form-section {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 3rem 2rem;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+
+        .venta-form .form-group {
+            margin-bottom: 2.5rem;
+        }
+
+        .venta-form .form-group label {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            display: block;
+            color: #1A2238;
+        }
+
+        .venta-form .form-group input {
+            width: 100%;
+            padding: 1.5rem;
+            font-size: 1.2rem;
+            border: 2px solid #E0E3E7;
+            border-radius: 8px;
+            transition: border-color 0.3s ease;
+        }
+
+        .venta-form .form-group input:focus {
+            outline: none;
+            border-color: #3AB795;
+            box-shadow: 0 0 0 3px rgba(58, 183, 149, 0.1);
+        }
+
+        .venta-form .form-group {
+            position: relative;
+        }
+
+        .venta-form .form-group .btn {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            padding: 0.75rem 1.5rem;
+            font-size: 1rem;
+        }
+
+        .venta-form .form-group input {
+            padding-right: 120px; /* Espacio para el botón */
+        }
+
+        .producto-info {
+            background: #F8F9FA;
+            padding: 2rem;
+            border-radius: 8px;
+            margin: 2rem 0;
+            border-left: 4px solid #3AB795;
+        }
+
+        .producto-info h3 {
+            margin: 0 0 1rem 0;
+            color: #1A2238;
+            font-size: 1.3rem;
+        }
+
+        .producto-info p {
+            margin: 0.5rem 0;
+            font-size: 1.1rem;
+        }
+
+        .venta-total {
+            text-align: center;
+            background: linear-gradient(135deg, #3AB795, #F6AE2D);
+            color: white;
+            padding: 2rem;
+            border-radius: 12px;
+            margin: 2rem 0;
+        }
+
+        .venta-total h3 {
+            margin: 0;
+            font-size: 2rem;
+            font-weight: bold;
+        }
+
+        .btn-large {
+            width: 100%;
+            padding: 1.5rem;
+            font-size: 1.3rem;
+            font-weight: 600;
+            border-radius: 12px;
+            margin-top: 1rem;
+        }
+
+        .productos-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .producto-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: pointer;
+            border: 2px solid transparent;
+        }
+
+        .producto-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+            border-color: #3AB795;
+        }
+
+        .producto-card h4 {
+            margin: 0 0 0.5rem 0;
+            color: #1A2238;
+            font-size: 1.1rem;
+        }
+
+        .producto-card p {
+            margin: 0.25rem 0;
+            color: #666;
+        }
+
+        .producto-card .btn {
+            width: 100%;
+            margin-top: 1rem;
+            padding: 0.75rem;
+        }
+
+        /* Responsive para móviles */
+        @media (max-width: 768px) {
+            .form-section {
+                padding: 2rem 1rem;
+                margin: 0 1rem;
+            }
+
+            .venta-form .form-group label {
+                font-size: 1.1rem;
+            }
+
+            .venta-form .form-group input {
+                font-size: 1.1rem;
+                padding: 1.25rem;
+                padding-right: 110px;
+            }
+
+            .venta-form .form-group .btn {
+                padding: 0.6rem 1.2rem;
+                font-size: 0.9rem;
+            }
+
+            .producto-info {
+                padding: 1.5rem;
+            }
+
+            .venta-total {
+                padding: 1.5rem;
+            }
+
+            .venta-total h3 {
+                font-size: 1.8rem;
+            }
+
+            .btn-large {
+                padding: 1.25rem;
+                font-size: 1.2rem;
+            }
+
+            .productos-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+
+            .producto-card {
+                padding: 1.25rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .form-section {
+                margin: 0 0.5rem;
+                padding: 1.5rem 1rem;
+            }
+
+            .venta-form .form-group input {
+                padding-right: 100px;
+            }
+
+            .venta-form .form-group .btn {
+                padding: 0.5rem 1rem;
+                font-size: 0.85rem;
+                right: 5px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Header -->
+        <header class="dashboard-header vendedor-header">
+            <div class="header-content">
+                <h1>Autostock - Registrar Venta</h1>
+                <div class="user-info">
+                    <a href="/vendedor/dashboard" class="btn btn-secondary">← Volver</a>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="dashboard-main">
+            <div class="form-section">
+                <h2>Registrar Nueva Venta</h2>
+
+                <form action="/vendedor/ventas" method="post" id="venta-form" class="venta-form">
+                    <div class="form-group">
+                        <label for="producto_codigo">Código del Producto</label>
+                        <input type="text" id="producto_codigo" name="producto_codigo" required
+                               placeholder="Escanee o ingrese el código" autocomplete="off">
+                        <button type="button" id="buscar-producto" class="btn btn-secondary">Buscar</button>
+                    </div>
+
+                    <div id="producto-info" class="producto-info" style="display: none;">
+                        <h3 id="producto-nombre"></h3>
+                        <p>Precio: $<span id="producto-precio"></span></p>
+                        <p>Stock disponible: <span id="producto-stock"></span></p>
+                        <input type="hidden" id="producto_id" name="producto_id">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="cantidad">Cantidad</label>
+                        <input type="number" id="cantidad" name="cantidad" min="1" required>
+                    </div>
+
+                    <div class="venta-total">
+                        <h3>Total: $<span id="total-calculado">0.00</span></h3>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-large" id="registrar-venta" disabled>
+                        Registrar Venta
+                    </button>
+                </form>
+            </div>
+
+            <div class="content-section">
+                <h2>Productos Disponibles</h2>
+                <div class="productos-grid">
+                    {% for producto in productos %}
+                    <div class="producto-card" data-codigo="{{ producto.codigo }}" data-id="{{ producto.id }}"
+                         data-nombre="{{ producto.nombre }}" data-precio="{{ producto.precio }}"
+                         data-stock="{{ producto.cantidad }}">
+                        <h4>{{ producto.nombre }}</h4>
+                        <p class="producto-codigo">{{ producto.codigo }}</p>
+                        <p class="producto-precio">${{ "%.0f"|format(producto.precio) }}</p>
+                        <p class="producto-stock">Stock: {{ producto.cantidad }}</p>
+                        <button class="btn btn-sm seleccionar-producto">Seleccionar</button>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="/static/js/vendedor.js"></script>
+    <script>
+        // Funcionalidad específica para el formulario de ventas
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('venta-form');
+            const buscarBtn = document.getElementById('buscar-producto');
+            const productoInfo = document.getElementById('producto-info');
+            const cantidadInput = document.getElementById('cantidad');
+            const totalSpan = document.getElementById('total-calculado');
+            const registrarBtn = document.getElementById('registrar-venta');
+
+            // Buscar producto por código
+            buscarBtn.addEventListener('click', function() {
+                const codigo = document.getElementById('producto_codigo').value;
+                if (codigo) {
+                    buscarProductoPorCodigo(codigo);
+                }
+            });
+
+            // Calcular total cuando cambia la cantidad
+            cantidadInput.addEventListener('input', calcularTotal);
+
+            // Seleccionar producto de la lista
+            document.querySelectorAll('.seleccionar-producto').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const card = this.closest('.producto-card');
+                    seleccionarProducto(card);
+                });
+            });
+
+            function buscarProductoPorCodigo(codigo) {
+                fetch(`/vendedor/api/productos/${codigo}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        mostrarProductoInfo(data);
+                    })
+                    .catch(error => {
+                        alert('Producto no encontrado');
+                        console.error('Error:', error);
+                    });
+            }
+
+            function mostrarProductoInfo(producto) {
+                document.getElementById('producto-nombre').textContent = producto.nombre;
+                document.getElementById('producto-precio').textContent = producto.precio;
+                document.getElementById('producto-stock').textContent = producto.cantidad;
+                document.getElementById('producto_id').value = producto.id;
+
+                productoInfo.style.display = 'block';
+                calcularTotal();
+                registrarBtn.disabled = false;
+            }
+
+            function seleccionarProducto(card) {
+                const codigo = card.dataset.codigo;
+                document.getElementById('producto_codigo').value = codigo;
+                buscarProductoPorCodigo(codigo);
+            }
+
+            function calcularTotal() {
+                const precio = parseFloat(document.getElementById('producto-precio').textContent) || 0;
+                const cantidad = parseInt(cantidadInput.value) || 0;
+                const total = precio * cantidad;
+                totalSpan.textContent = total.toFixed(2);
+            }
+
+            // Validación del formulario
+            form.addEventListener('submit', function(e) {
+                const cantidad = parseInt(cantidadInput.value);
+                const stock = parseInt(document.getElementById('producto-stock').textContent);
+
+                if (cantidad > stock) {
+                    e.preventDefault();
+                    alert('No hay suficiente stock disponible');
+                    return;
+                }
+
+                if (cantidad <= 0) {
+                    e.preventDefault();
+                    alert('La cantidad debe ser mayor a 0');
+                    return;
+                }
+            });
+        });
+    </script>
+</body>
+</html>

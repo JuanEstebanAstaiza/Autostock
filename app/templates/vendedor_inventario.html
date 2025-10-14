@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Autostock - Vendedor - Inventario</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Header -->
+        <header class="dashboard-header vendedor-header">
+            <div class="header-content">
+                <h1>Autostock - Consulta de Inventario</h1>
+                <div class="user-info">
+                    <a href="/vendedor/dashboard" class="btn btn-secondary">← Volver al Dashboard</a>
+                    <form action="/logout" method="post" style="display: inline;">
+                        <button type="submit" class="btn btn-secondary">Cerrar Sesión</button>
+                    </form>
+                </div>
+            </div>
+        </header>
+
+        <!-- Navigation -->
+        <nav class="dashboard-nav">
+            <a href="/vendedor/dashboard" class="nav-link">Dashboard</a>
+            <a href="/vendedor/inventario" class="nav-link active">Inventario</a>
+            <a href="/vendedor/ventas" class="nav-link">Registrar Venta</a>
+            <a href="/vendedor/ventas/historial" class="nav-link">Mi Historial</a>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="dashboard-main">
+            <div class="content-section">
+                <div class="section-header">
+                    <h2>Productos Disponibles</h2>
+                    <input type="text" id="search-input" placeholder="Buscar productos..." class="form-control">
+                </div>
+
+                <div class="productos-grid">
+                    {% for producto in productos %}
+                    <div class="producto-card">
+                        <h4>{{ producto.nombre }}</h4>
+                        <p class="producto-codigo">{{ producto.codigo }}</p>
+                        <p class="producto-precio">${{ "%.0f"|format(producto.precio) }}</p>
+                        <p class="producto-stock">Stock: {{ producto.cantidad }}</p>
+                        <p class="producto-categoria">{{ producto.categoria or 'Sin categoría' }}</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <style>
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .form-control {
+            padding: 0.5rem;
+            border: 1px solid #E0E3E7;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            width: 250px;
+        }
+
+        .producto-card {
+            background: white;
+            border: 1px solid #E0E3E7;
+            border-radius: 8px;
+            padding: 1rem;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .producto-card h4 {
+            color: #1A2238;
+            margin-bottom: 0.5rem;
+        }
+
+        .producto-codigo {
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .producto-precio {
+            font-weight: bold;
+            color: #1A2238;
+            margin-bottom: 0.5rem;
+        }
+
+        .producto-stock {
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .producto-categoria {
+            color: #666;
+            font-size: 0.8rem;
+        }
+    </style>
+
+    <script src="/static/js/main.js"></script>
+    <script src="/static/js/vendedor.js"></script>
+</body>
+</html>

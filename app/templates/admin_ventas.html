@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Autostock - Admin - Ventas</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <style>
+        /* Estilos específicos para modal de ventas más grande */
+        #venta-modal .modal-content {
+            max-width: 700px !important; /* Volver al tamaño original */
+            width: 95% !important;
+            padding: 3rem !important; /* Padding interno grande */
+        }
+
+        #venta-modal .modal-header {
+            margin: -3rem -3rem 2rem -3rem !important;
+            padding: 2.5rem 3rem !important;
+        }
+
+        #venta-modal .form-group {
+            margin-bottom: 2rem;
+        }
+
+        #venta-modal .form-group label {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            display: block;
+            color: #1A2238;
+        }
+
+        #venta-modal .form-group input,
+        #venta-modal .form-group select {
+            width: 100%;
+            padding: 1.25rem;
+            font-size: 1.1rem;
+            border: 2px solid #E0E3E7;
+            border-radius: 8px;
+            transition: border-color 0.3s ease;
+        }
+
+        #venta-modal .form-group input:focus,
+        #venta-modal .form-group select:focus {
+            outline: none;
+            border-color: #3AB795;
+            box-shadow: 0 0 0 3px rgba(58, 183, 149, 0.1);
+        }
+
+        #venta-modal .modal-actions {
+            margin: 2rem -3rem -3rem -3rem !important;
+            padding: 2.5rem 3rem !important;
+            background: #F8F9FA;
+            border-top: 1px solid #E0E3E7;
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+        }
+
+        #venta-modal .modal-actions .btn {
+            padding: 1rem 2rem;
+            font-size: 1.1rem;
+            min-width: 140px;
+        }
+
+        /* Responsive para móviles */
+        @media (max-width: 768px) {
+            #venta-modal .modal-content {
+                width: 98% !important;
+                margin: 1% auto !important;
+                padding: 2rem 1.5rem !important;
+            }
+
+            #venta-modal .modal-header {
+                margin: -2rem -1.5rem 2rem -1.5rem !important;
+                padding: 2rem 1.5rem !important;
+            }
+
+            #venta-modal .modal-actions {
+                margin: 2rem -1.5rem -2rem -1.5rem !important;
+                padding: 2rem 1.5rem !important;
+                flex-direction: column;
+            }
+
+            #venta-modal .modal-actions .btn {
+                width: 100%;
+                margin-bottom: 0.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Header -->
+        <header class="dashboard-header admin-header">
+            <div class="header-content">
+                <h1>Autostock - Gestión de Ventas</h1>
+                <div class="user-info">
+                    <a href="/negocio/dashboard" class="btn btn-secondary">← Volver al Dashboard</a>
+                    <form action="/logout" method="post" style="display: inline;">
+                        <button type="submit" class="btn btn-secondary">Cerrar Sesión</button>
+                    </form>
+                </div>
+            </div>
+        </header>
+
+        <!-- Navigation -->
+        <nav class="dashboard-nav">
+            <a href="/negocio/dashboard" class="nav-link">Dashboard</a>
+            <a href="/negocio/inventario" class="nav-link">Inventario</a>
+            <a href="/negocio/ventas" class="nav-link active">Ventas</a>
+            <a href="/negocio/usuarios" class="nav-link">Usuarios</a>
+            <a href="/negocio/reportes" class="nav-link">Reportes</a>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="dashboard-main">
+            <div class="content-section">
+                <div class="section-header">
+                    <h2>Historial de Ventas</h2>
+                    <button class="btn btn-primary" onclick="showModal('venta-modal')">Registrar Venta</button>
+                </div>
+
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Producto</th>
+                                <th>Cantidad</th>
+                                <th>Valor Unitario</th>
+                                <th>Total</th>
+                                <th>Vendedor</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for venta in ventas %}
+                            <tr>
+                                <td>{{ venta.fecha_venta.strftime('%d/%m/%Y %H:%M') }}</td>
+                                <td>{{ venta.producto.nombre }}</td>
+                                <td>{{ venta.cantidad_vendida }}</td>
+                                <td>${{ "%.0f"|format(venta.producto.precio) }}</td>
+                                <td>${{ "%.0f"|format(venta.valor_total) }}</td>
+                                <td>{{ venta.vendedor.nombre_usuario }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal para registrar venta -->
+    <div id="venta-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Registrar Nueva Venta</h3>
+                <span class="modal-close">&times;</span>
+            </div>
+            <form action="/negocio/ventas" method="post">
+                <div class="form-group">
+                    <label for="producto_id">Producto</label>
+                    <select id="producto_id" name="producto_id" required>
+                        <option value="">Seleccione un producto</option>
+                        <!-- Los productos se cargarían dinámicamente -->
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="vendedor_id">Vendedor</label>
+                    <select id="vendedor_id" name="vendedor_id" required>
+                        <option value="">Seleccione un vendedor</option>
+                        <!-- Los vendedores se cargarían dinámicamente -->
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="cantidad">Cantidad</label>
+                    <input type="number" id="cantidad" name="cantidad" min="1" required>
+                </div>
+
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('venta-modal')">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Registrar Venta</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="/static/js/main.js"></script>
+    <script>
+        function showModal(modalId) {
+            document.getElementById(modalId).style.display = 'block';
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        window.onclick = function(event) {
+            const modals = document.getElementsByClassName('modal');
+            for (let modal of modals) {
+                if (event.target == modal) {
+                    modal.style.display = 'none';
+                }
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Autostock - SuperAdmin - Backups</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Header -->
+        <header class="dashboard-header superadmin-header">
+            <div class="header-content">
+                <h1>Autostock - Gestión de Backups</h1>
+                <div class="user-info">
+                    <a href="/superadmin/dashboard" class="btn btn-secondary">← Volver al Dashboard</a>
+                    <form action="/logout" method="post" style="display: inline;">
+                        <button type="submit" class="btn btn-secondary">Cerrar Sesión</button>
+                    </form>
+                </div>
+            </div>
+        </header>
+
+        <!-- Navigation -->
+        <nav class="dashboard-nav">
+            <a href="/superadmin/dashboard" class="nav-link">Dashboard</a>
+            <a href="/superadmin/negocios" class="nav-link">Negocios</a>
+            <a href="/superadmin/planes" class="nav-link">Planes</a>
+            <a href="/superadmin/backups" class="nav-link active">Backups</a>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="dashboard-main">
+            <div class="content-section">
+                <div class="section-header">
+                    <h2>Respaldos de Datos</h2>
+                    <p>Descarga respaldos completos de la base de datos en formato CSV</p>
+                </div>
+
+                <div class="backup-grid">
+                    <div class="backup-card">
+                        <h3>Usuarios</h3>
+                        <p>Exportar todos los usuarios del sistema</p>
+                        <a href="/superadmin/backups/download/usuarios" class="btn btn-primary">
+                            Descargar Usuarios
+                        </a>
+                    </div>
+
+                    <div class="backup-card">
+                        <h3>Negocios</h3>
+                        <p>Exportar información de todos los negocios</p>
+                        <a href="/superadmin/backups/download/negocios" class="btn btn-primary">
+                            Descargar Negocios
+                        </a>
+                    </div>
+
+                    <div class="backup-card">
+                        <h3>Productos</h3>
+                        <p>Exportar catálogo completo de productos</p>
+                        <a href="/superadmin/backups/download/productos" class="btn btn-primary">
+                            Descargar Productos
+                        </a>
+                    </div>
+
+                    <div class="backup-card">
+                        <h3>Ventas</h3>
+                        <p>Exportar historial completo de ventas</p>
+                        <a href="/superadmin/backups/download/ventas" class="btn btn-primary">
+                            Descargar Ventas
+                        </a>
+                    </div>
+                </div>
+
+                <div class="backup-info">
+                    <h3>Información de Respaldos</h3>
+                    <ul>
+                        <li>Los archivos se generan en tiempo real</li>
+                        <li>Formato: CSV con codificación UTF-8</li>
+                        <li>Fecha incluida en el nombre del archivo</li>
+                        <li>Compatible con Excel y otras herramientas</li>
+                    </ul>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <style>
+        .backup-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .backup-card {
+            background: white;
+            border: 1px solid #E0E3E7;
+            border-radius: 8px;
+            padding: 1.5rem;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .backup-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+        }
+
+        .backup-card h3 {
+            color: #1A2238;
+            margin-bottom: 0.5rem;
+        }
+
+        .backup-card p {
+            color: #666;
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+        }
+
+        .backup-info {
+            background: #E0E3E7;
+            border-radius: 8px;
+            padding: 1.5rem;
+        }
+
+        .backup-info h3 {
+            color: #1A2238;
+            margin-bottom: 1rem;
+        }
+
+        .backup-info ul {
+            margin: 0;
+            padding-left: 1.5rem;
+        }
+
+        .backup-info li {
+            margin-bottom: 0.5rem;
+            color: #1A2238;
+        }
+    </style>
+
+    <script src="/static/js/main.js"></script>
+</body>
+</html>

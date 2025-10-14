@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Autostock - Admin - Reportes</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Header -->
+        <header class="dashboard-header admin-header">
+            <div class="header-content">
+                <h1>Autostock - Reportes</h1>
+                <div class="user-info">
+                    <a href="/negocio/dashboard" class="btn btn-secondary">← Volver al Dashboard</a>
+                    <form action="/logout" method="post" style="display: inline;">
+                        <button type="submit" class="btn btn-secondary">Cerrar Sesión</button>
+                    </form>
+                </div>
+            </div>
+        </header>
+
+        <!-- Navigation -->
+        <nav class="dashboard-nav">
+            <a href="/negocio/dashboard" class="nav-link">Dashboard</a>
+            <a href="/negocio/inventario" class="nav-link">Inventario</a>
+            <a href="/negocio/ventas" class="nav-link">Ventas</a>
+            <a href="/negocio/usuarios" class="nav-link">Usuarios</a>
+            <a href="/negocio/reportes" class="nav-link active">Reportes</a>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="dashboard-main">
+            <div class="content-section">
+                <h2>Reportes del Negocio</h2>
+
+                <div class="report-actions">
+                    <a href="/negocio/reportes/export/ventas" class="btn btn-primary">Exportar Ventas</a>
+                    <a href="/negocio/reportes/export/inventario" class="btn btn-primary">Exportar Inventario</a>
+                </div>
+
+                <p>Funcionalidad de reportes en desarrollo...</p>
+            </div>
+        </main>
+    </div>
+
+    <script src="/static/js/main.js"></script>
+</body>
+</html>

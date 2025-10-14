@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Autostock - Admin - Ventas Recientes</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* Estilos específicos para ventas recientes */
+        .ventas-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card-large {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+            text-align: center;
+            border-top: 4px solid #3AB795;
+        }
+
+        .stat-card-large h3 {
+            margin: 0 0 1rem 0;
+            color: #666;
+            font-size: 1rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .stat-number-large {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #1A2238;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label-large {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .chart-container {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+            overflow: hidden; /* Previene desbordamiento */
+        }
+
+        .chart-container h3 {
+            margin-bottom: 1.5rem;
+            color: #1A2238;
+            border-bottom: 2px solid #3AB795;
+            padding-bottom: 0.5rem;
+        }
+
+        .chart-wrapper {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            height: 300px;
+            margin: 0 auto;
+            overflow: hidden;
+        }
+
+        #ventasChart {
+            max-width: 100% !important;
+            height: 100% !important;
+        }
+
+        .ventas-table-container {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+            overflow-x: auto; /* Scroll horizontal en móviles */
+        }
+
+        .ventas-table {
+            min-width: 600px; /* Ancho mínimo para forzar scroll */
+        }
+
+        .ventas-table-container h3 {
+            margin-bottom: 1.5rem;
+            color: #1A2238;
+            border-bottom: 2px solid #3AB795;
+            padding-bottom: 0.5rem;
+        }
+
+        .ventas-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .ventas-table th,
+        .ventas-table td {
+            padding: 1rem 1.25rem;
+            text-align: left;
+            border-bottom: 1px solid #E0E3E7;
+        }
+
+        .ventas-table th {
+            background-color: #1A2238;
+            color: white;
+            font-weight: 600;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .ventas-table tbody tr:hover {
+            background-color: rgba(26, 34, 56, 0.04);
+        }
+
+        .fecha-cell {
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+        }
+
+        .producto-cell {
+            font-weight: 500;
+        }
+
+        .cantidad-cell {
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .total-cell {
+            text-align: right;
+            font-weight: bold;
+            color: #3AB795;
+        }
+
+        .ventas-badge {
+            background: #E0E3E7;
+            color: #1A2238;
+            padding: 0.25rem 0.5rem;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .ventas-stats {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+
+            .stat-card-large {
+                padding: 1.5rem;
+            }
+
+            .stat-number-large {
+                font-size: 2rem;
+            }
+
+            .chart-container,
+            .ventas-table-container {
+                padding: 1rem;
+            }
+
+            .chart-wrapper {
+                height: 250px; /* Altura reducida para móviles */
+                max-width: 100%;
+            }
+
+            .ventas-table th,
+            .ventas-table td {
+                padding: 0.75rem 0.5rem;
+                font-size: 0.85rem;
+                white-space: nowrap; /* Evitar que el texto se rompa */
+            }
+        }
+
+        @media (max-width: 480px) {
+            .chart-wrapper {
+                height: 200px; /* Altura aún más reducida */
+            }
+
+            .chart-container {
+                padding: 0.75rem;
+            }
+
+            .ventas-table-container {
+                padding: 0.75rem;
+            }
+
+            .ventas-table {
+                font-size: 0.8rem;
+            }
+
+            .ventas-table th,
+            .ventas-table td {
+                padding: 0.5rem 0.25rem;
+            }
+        }
+    </style>
+</head>
+<body class="admin-dashboard">
+    <div class="dashboard-container">
+        <!-- Header -->
+        <header class="dashboard-header admin-header">
+            <div class="header-content">
+                <h1>Autostock - Ventas Recientes</h1>
+                <div class="user-info">
+                    <a href="/negocio/dashboard" class="btn btn-secondary">← Volver al Dashboard</a>
+                    <form action="/logout" method="post" style="display: inline;">
+                        <button type="submit" class="btn btn-secondary">Cerrar Sesión</button>
+                    </form>
+                </div>
+            </div>
+        </header>
+
+        <!-- Navigation -->
+        <nav class="dashboard-nav">
+            <a href="/negocio/dashboard" class="nav-link">Dashboard</a>
+            <a href="/negocio/inventario" class="nav-link">Inventario</a>
+            <a href="/negocio/ventas" class="nav-link">Ventas</a>
+            <a href="/negocio/usuarios" class="nav-link">Usuarios</a>
+            <a href="/negocio/reportes/ventas-recientes" class="nav-link active">Reportes</a>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="dashboard-main">
+            <div class="content-section">
+                <h2>💰 Ventas Recientes</h2>
+
+                <!-- Estadísticas principales -->
+                <div class="ventas-stats">
+                    <div class="stat-card-large">
+                        <h3>Total de Ventas</h3>
+                        <div class="stat-number-large">{{ total_ventas }}</div>
+                        <div class="stat-label-large">registros recientes</div>
+                    </div>
+                    <div class="stat-card-large">
+                        <h3>Total Ingresos</h3>
+                        <div class="stat-number-large">${{ "%.0f"|format(total_ingresos) }}</div>
+                        <div class="stat-label-large">de las ventas recientes</div>
+                    </div>
+                </div>
+
+                <!-- Gráfico de ventas por día -->
+                <div class="chart-container">
+                    <h3>📈 Tendencia de Ventas (Últimos 30 días)</h3>
+                    <div class="chart-wrapper">
+                        <canvas id="ventasChart" width="800" height="300"></canvas>
+                    </div>
+                </div>
+
+                <!-- Tabla de ventas recientes -->
+                <div class="ventas-table-container">
+                    <h3>📋 Historial de Ventas Recientes</h3>
+                    <div class="table-container">
+                        <table class="ventas-table data-table">
+                            <thead>
+                                <tr>
+                                    <th style="width: 25%;">Fecha y Hora</th>
+                                    <th style="width: 40%;">Producto</th>
+                                    <th style="width: 15%;">Cantidad</th>
+                                    <th style="width: 20%;">Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for venta in ventas_recientes %}
+                                <tr>
+                                    <td class="fecha-cell">
+                                        {{ venta.fecha_venta.strftime('%d/%m/%Y') }}<br>
+                                        <small>{{ venta.fecha_venta.strftime('%H:%M') }}</small>
+                                    </td>
+                                    <td class="producto-cell">{{ venta.producto.nombre }}</td>
+                                    <td class="cantidad-cell">
+                                        <span class="ventas-badge">{{ venta.cantidad_vendida }}</span>
+                                    </td>
+                                    <td class="total-cell">${{ "%.0f"|format(venta.valor_total) }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="/static/js/main.js"></script>
+    <script>
+        // Datos para el gráfico
+        const ventasData = {{ ventas_por_dia|tojson }};
+
+        // Preparar datos para Chart.js
+        const labels = ventasData.map(item => {
+            const fecha = new Date(item.fecha);
+            return fecha.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' });
+        });
+
+        const valores = ventasData.map(item => parseFloat(item.total));
+        const cantidades = ventasData.map(item => parseInt(item.cantidad));
+
+        // Configurar el gráfico con tamaño fijo
+        const ctx = document.getElementById('ventasChart').getContext('2d');
+        const chart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Ingresos ($)',
+                    data: valores,
+                    borderColor: '#3AB795',
+                    backgroundColor: 'rgba(58, 183, 149, 0.1)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4,
+                    yAxisID: 'y'
+                }, {
+                    label: 'Cantidad de Ventas',
+                    data: cantidades,
+                    borderColor: '#F6AE2D',
+                    backgroundColor: 'rgba(246, 174, 45, 0.1)',
+                    borderWidth: 2,
+                    fill: true,
+                    tension: 0.4,
+                    yAxisID: 'y1'
+                }]
+            },
+            options: {
+                responsive: false, // Desactivar responsive automático
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                        labels: {
+                            boxWidth: 12,
+                            font: {
+                                size: 12
+                            }
+                        }
+                    },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false,
+                        backgroundColor: 'rgba(0,0,0,0.8)',
+                        titleColor: '#fff',
+                        bodyColor: '#fff',
+                        borderColor: '#3AB795',
+                        borderWidth: 1
+                    }
+                },
+                scales: {
+                    x: {
+                        display: true,
+                        title: {
+                            display: true,
+                            text: 'Fecha',
+                            font: {
+                                size: 14
+                            }
+                        },
+                        ticks: {
+                            maxTicksLimit: 10,
+                            font: {
+                                size: 11
+                            }
+                        }
+                    },
+                    y: {
+                        type: 'linear',
+                        display: true,
+                        position: 'left',
+                        title: {
+                            display: true,
+                            text: 'Ingresos ($)',
+                            font: {
+                                size: 14
+                            }
+                        },
+                        ticks: {
+                            callback: function(value) {
+                                return '$' + Math.round(value);
+                            },
+                            font: {
+                                size: 11
+                            }
+                        },
+                        grid: {
+                            color: 'rgba(0,0,0,0.1)'
+                        }
+                    },
+                    y1: {
+                        type: 'linear',
+                        display: true,
+                        position: 'right',
+                        title: {
+                            display: true,
+                            text: 'Cantidad de Ventas',
+                            font: {
+                                size: 14
+                            }
+                        },
+                        ticks: {
+                            font: {
+                                size: 11
+                            }
+                        },
+                        grid: {
+                            drawOnChartArea: false,
+                            color: 'rgba(246, 174, 45, 0.3)'
+                        },
+                    }
+                },
+                interaction: {
+                    mode: 'index',
+                    intersect: false,
+                },
+                elements: {
+                    point: {
+                        radius: 4,
+                        hoverRadius: 6
+                    },
+                    line: {
+                        borderWidth: 2
+                    }
+                }
+            }
+        });
+
+        // Función para mantener el tamaño fijo del gráfico
+        function fixChartSize() {
+            const canvas = document.getElementById('ventasChart');
+            const wrapper = document.querySelector('.chart-wrapper');
+
+            if (canvas && wrapper) {
+                // Forzar tamaño fijo
+                canvas.style.width = '800px';
+                canvas.style.height = '300px';
+                canvas.width = 800;
+                canvas.height = 300;
+
+                // Asegurar que el wrapper mantenga su tamaño
+                wrapper.style.width = '100%';
+                wrapper.style.maxWidth = '800px';
+                wrapper.style.height = '300px';
+            }
+        }
+
+        // Animación de carga
+        document.addEventListener('DOMContentLoaded', function() {
+            // Fijar tamaño del gráfico inmediatamente
+            fixChartSize();
+
+            const chartContainer = document.querySelector('.chart-container');
+            const tableContainer = document.querySelector('.ventas-table-container');
+
+            [chartContainer, tableContainer].forEach(container => {
+                container.style.opacity = '0';
+                container.style.transform = 'translateY(20px)';
+                container.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+            });
+
+            setTimeout(() => {
+                chartContainer.style.opacity = '1';
+                chartContainer.style.transform = 'translateY(0)';
+            }, 100);
+
+            setTimeout(() => {
+                tableContainer.style.opacity = '1';
+                tableContainer.style.transform = 'translateY(0)';
+            }, 300);
+        });
+
+        // Prevenir cambios de tamaño en eventos de ventana
+        window.addEventListener('resize', function() {
+            // Solo ajustar si es realmente necesario (pantallas muy pequeñas)
+            if (window.innerWidth <= 480) {
+                const wrapper = document.querySelector('.chart-wrapper');
+                if (wrapper) {
+                    wrapper.style.height = '200px';
+                    const canvas = document.getElementById('ventasChart');
+                    if (canvas) {
+                        canvas.style.height = '200px';
+                        canvas.height = 200;
+                    }
+                }
+            } else if (window.innerWidth <= 768) {
+                const wrapper = document.querySelector('.chart-wrapper');
+                if (wrapper) {
+                    wrapper.style.height = '250px';
+                    const canvas = document.getElementById('ventasChart');
+                    if (canvas) {
+                        canvas.style.height = '250px';
+                        canvas.height = 250;
+                    }
+                }
+            } else {
+                // Mantener tamaño fijo en desktop
+                fixChartSize();
+            }
+        });
+    </script>
+</body>
+</html>

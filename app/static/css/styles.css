@@ -1,0 +1,831 @@
+/* Autostock - CSS Responsive Mobile-First */
+/* Paleta de colores:
+   - Azul oscuro: #1A2238 (headers, navegación)
+   - Gris medio: #E0E3E7 (fondos secundarios)
+   - Verde menta: #3AB795 (éxito, superadmin)
+   - Naranja suave: #F6AE2D (advertencias, admin)
+   - Blanco: #FFFFFF (fondos principales)
+*/
+
+/* Reset y base */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    line-height: 1.6;
+    color: #1A2238;
+    background-color: #FFFFFF;
+}
+
+/* Layout principal */
+.dashboard-container {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    margin: 0 auto;
+}
+
+/* Headers por rol */
+.dashboard-header {
+    background-color: #1A2238;
+    color: white;
+    padding: 1rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.superadmin-header {
+    background: linear-gradient(135deg, #1A2238 0%, #3AB795 100%);
+}
+
+.admin-header {
+    background: linear-gradient(135deg, #1A2238 0%, #F6AE2D 100%);
+}
+
+.vendedor-header {
+    background-color: #1A2238;
+}
+
+.header-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.header-content h1 {
+    font-size: 1.5rem;
+    font-weight: 600;
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+/* Navegación */
+.dashboard-nav {
+    background-color: #E0E3E7;
+    border-bottom: 1px solid #1A2238;
+    overflow-x: auto;
+}
+
+.dashboard-nav {
+    display: flex;
+    gap: 0;
+}
+
+.nav-link {
+    display: block;
+    padding: 1rem;
+    text-decoration: none;
+    color: #1A2238;
+    font-weight: 500;
+    border-bottom: 3px solid transparent;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+}
+
+.nav-link:hover,
+.nav-link.active {
+    background-color: rgba(26, 34, 56, 0.1);
+    border-bottom-color: #1A2238;
+}
+
+/* Contenido principal */
+.dashboard-main {
+    flex: 1;
+    padding: 1.5rem 2rem;
+    max-width: 1800px;
+    margin: 0 auto;
+    width: 100%;
+}
+
+/* Grid de estadísticas */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2.5rem;
+}
+
+.stat-card {
+    background: white;
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+    border-left: 5px solid #3AB795;
+    text-align: center;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #3AB795, #F6AE2D);
+}
+
+.stat-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+}
+
+.stat-card h3 {
+    font-size: 1rem;
+    color: #666;
+    margin-bottom: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 500;
+}
+
+.stat-number {
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: #1A2238;
+    margin: 0;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* Secciones de contenido */
+.content-section {
+    background: white;
+    border-radius: 12px;
+    padding: 2.5rem;
+    margin-bottom: 2.5rem;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+    border: 1px solid #E0E3E7;
+    width: 100%;
+}
+
+.content-section h2 {
+    margin-bottom: 1.5rem;
+    color: #1A2238;
+    font-size: 1.5rem;
+    font-weight: 600;
+    border-bottom: 2px solid #3AB795;
+    padding-bottom: 0.5rem;
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+}
+
+.section-header h2 {
+    margin: 0;
+    color: #1A2238;
+    font-size: 1.5rem;
+    font-weight: 600;
+}
+
+/* Tablas */
+.table-container {
+    overflow-x: auto;
+    margin: 1.5rem 0;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    background: white;
+    width: 100%;
+}
+
+.data-table {
+    width: 100%;
+    min-width: 1000px;
+    border-collapse: collapse;
+    margin: 0;
+    font-size: 0.95rem;
+}
+
+.data-table th,
+.data-table td {
+    padding: 1rem 1.25rem;
+    text-align: left;
+    border-bottom: 1px solid #E0E3E7;
+    vertical-align: middle;
+}
+
+.data-table th {
+    background-color: #1A2238;
+    color: white;
+    font-weight: 600;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.data-table tbody tr:hover {
+    background-color: rgba(26, 34, 56, 0.04);
+}
+
+.data-table tbody tr:nth-child(even) {
+    background-color: rgba(26, 34, 56, 0.02);
+}
+
+/* Estilos específicos para tablas en superadmin */
+.superadmin-table .data-table th,
+.superadmin-table .data-table td {
+    padding: 1.25rem 1.5rem;
+    font-size: 1rem;
+}
+
+.superadmin-table .data-table th {
+    font-size: 0.85rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* Botones */
+.btn {
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 4px;
+    text-decoration: none;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 0.9rem;
+    text-align: center;
+}
+
+.btn-primary {
+    background-color: #1A2238;
+    color: white;
+}
+
+.btn-primary:hover {
+    background-color: #2A3A58;
+}
+
+.btn-secondary {
+    background-color: #E0E3E7;
+    color: #1A2238;
+}
+
+.btn-secondary:hover {
+    background-color: #D0D3D7;
+}
+
+.btn-large {
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+}
+
+.btn-sm {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.8rem;
+}
+
+/* Formularios */
+.form-section {
+    background: white;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.75rem;
+    font-weight: 500;
+    color: #1A2238;
+    font-size: 0.95rem;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+    width: 100%;
+    padding: 0.875rem 1rem;
+    border: 1px solid #E0E3E7;
+    border-radius: 6px;
+    font-size: 1rem;
+    font-family: inherit;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: #1A2238;
+    box-shadow: 0 0 0 3px rgba(26, 34, 56, 0.1);
+}
+
+.form-group textarea {
+    resize: vertical;
+    min-height: 80px;
+}
+
+.login-form {
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+/* Login */
+.login-container {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #1A2238 0%, #3AB795 100%);
+    padding: 1rem;
+}
+
+.login-card {
+    background: white;
+    border-radius: 8px;
+    padding: 2rem;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+    width: 100%;
+    max-width: 400px;
+}
+
+.login-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.login-header h1 {
+    color: #1A2238;
+    margin-bottom: 0.5rem;
+    font-size: 2rem;
+}
+
+.login-header p {
+    color: #666;
+}
+
+.login-footer {
+    text-align: center;
+    margin-top: 2rem;
+    padding-top: 1rem;
+    border-top: 1px solid #E0E3E7;
+}
+
+.login-footer p {
+    color: #666;
+    font-size: 0.9rem;
+}
+
+/* Mensajes de error */
+.error-message {
+    background-color: #fee;
+    color: #c33;
+    padding: 0.75rem;
+    border-radius: 4px;
+    margin-bottom: 1rem;
+    border: 1px solid #fcc;
+}
+
+/* Status badges */
+.status-badge {
+    padding: 0.25rem 0.5rem;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    text-transform: uppercase;
+}
+
+.status-activo {
+    background-color: #3AB795;
+    color: white;
+}
+
+.status-inactivo,
+.status-vencido {
+    background-color: #F6AE2D;
+    color: white;
+}
+
+.status-suspendido {
+    background-color: #dc3545;
+    color: white;
+}
+
+/* Grid de productos */
+.productos-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.producto-card {
+    background: white;
+    border: 1px solid #E0E3E7;
+    border-radius: 8px;
+    padding: 1rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.producto-card:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    border-color: #1A2238;
+}
+
+.producto-card h4 {
+    margin-bottom: 0.5rem;
+    color: #1A2238;
+}
+
+.producto-codigo {
+    color: #666;
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+}
+
+.producto-precio {
+    font-weight: bold;
+    color: #1A2238;
+    margin-bottom: 0.5rem;
+}
+
+.producto-stock {
+    color: #666;
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+}
+
+/* Información de producto en ventas */
+.producto-info {
+    background-color: #E0E3E7;
+    padding: 1rem;
+    border-radius: 4px;
+    margin: 1rem 0;
+}
+
+.producto-info h3 {
+    color: #1A2238;
+    margin-bottom: 0.5rem;
+}
+
+/* Total de venta */
+.venta-total {
+    text-align: center;
+    margin: 1rem 0;
+    padding: 1rem;
+    background-color: #E0E3E7;
+    border-radius: 4px;
+}
+
+.venta-total h3 {
+    color: #1A2238;
+    margin: 0;
+}
+
+/* Botones de acción */
+.action-buttons {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin: 2rem 0;
+}
+
+/* Dashboard grid */
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 2rem;
+}
+
+/* Dashboard grid con dos columnas en desktop */
+@media (min-width: 1024px) {
+    .dashboard-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .data-table {
+        font-size: 0.85rem;
+    }
+
+    .data-table th,
+    .data-table td {
+        padding: 0.75rem 0.5rem;
+    }
+
+    .modal-content {
+        width: 98%;
+        margin: 2% auto;
+        max-height: 95vh;
+    }
+
+    .modal-header,
+    .modal-body,
+    .modal-actions {
+        padding: 1rem 1.5rem;
+    }
+
+    .section-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 1rem;
+    }
+
+    .filters {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        width: 100%;
+    }
+
+    .form-control {
+        width: 100%;
+    }
+}
+
+@media (min-width: 768px) {
+    .header-content h1 {
+        font-size: 2rem;
+    }
+
+    .dashboard-main {
+        padding: 2rem 3rem;
+    }
+
+    .stats-grid {
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    }
+
+    .dashboard-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .productos-grid {
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    }
+
+    .action-buttons {
+        justify-content: flex-start;
+    }
+}
+
+@media (min-width: 1024px) {
+    .dashboard-main {
+        padding: 2.5rem 4rem;
+    }
+
+    .stats-grid {
+        grid-template-columns: repeat(5, 1fr);
+    }
+
+    .dashboard-grid {
+        grid-template-columns: 2fr 1fr;
+    }
+}
+
+@media (min-width: 1400px) {
+    .dashboard-main {
+        padding: 3rem 5rem;
+        max-width: 2000px;
+    }
+}
+
+/* Modales */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.5);
+}
+
+.modal-content {
+    background-color: white;
+    margin: 5% auto;
+    padding: 0;
+    border-radius: 12px;
+    width: 95%;
+    max-width: 700px;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.3);
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.modal-header {
+    padding: 2rem 2.5rem;
+    border-bottom: 1px solid #E0E3E7;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: linear-gradient(135deg, #1A2238 0%, #2A3A58 100%);
+    color: white;
+    border-radius: 12px 12px 0 0;
+}
+
+.modal-header h3 {
+    margin: 0;
+    color: white;
+    font-size: 1.25rem;
+    font-weight: 600;
+}
+
+.modal-close {
+    color: #ccc;
+    font-size: 32px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: color 0.3s ease;
+}
+
+.modal-close:hover {
+    color: white;
+}
+
+.modal-body {
+    padding: 2.5rem;
+}
+
+.modal-actions {
+    padding: 1.5rem 2.5rem;
+    border-top: 1px solid #E0E3E7;
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    background-color: #F8F9FA;
+    border-radius: 0 0 12px 12px;
+}
+
+/* Utilidades */
+.text-center {
+    text-align: center;
+}
+
+.text-right {
+    text-align: right;
+}
+
+.mb-1 { margin-bottom: 0.5rem; }
+.mb-2 { margin-bottom: 1rem; }
+.mb-3 { margin-bottom: 1.5rem; }
+
+.mt-1 { margin-top: 0.5rem; }
+.mt-2 { margin-top: 1rem; }
+.mt-3 { margin-top: 1.5rem; }
+
+.hidden {
+    display: none;
+}
+
+.flex {
+    display: flex;
+}
+
+.flex-column {
+    flex-direction: column;
+}
+
+.items-center {
+    align-items: center;
+}
+
+.justify-between {
+    justify-content: space-between;
+}
+
+.gap-1 { gap: 0.5rem; }
+.gap-2 { gap: 1rem; }
+.gap-3 { gap: 1.5rem; }
+
+/* Estilos adicionales para superadmin_negocios.html */
+.header-actions {
+    display: flex;
+    gap: 1.5rem;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.filters {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.form-control {
+    padding: 0.75rem 1rem;
+    border: 1px solid #E0E3E7;
+    border-radius: 6px;
+    font-size: 0.95rem;
+    min-width: 200px;
+    transition: border-color 0.3s ease;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: #1A2238;
+    box-shadow: 0 0 0 3px rgba(26, 34, 56, 0.1);
+}
+
+.form-help {
+    display: block;
+    font-size: 0.85rem;
+    color: #666;
+    margin-top: 0.25rem;
+    font-style: italic;
+}
+
+.modal-info {
+    background: linear-gradient(135deg, #F8F9FA 0%, #E9ECEF 100%);
+    padding: 1.5rem;
+    border-radius: 8px;
+    margin: 1.5rem 0;
+    border-left: 4px solid #3AB795;
+}
+
+.modal-info h4 {
+    margin: 0 0 0.75rem 0;
+    color: #1A2238;
+    font-size: 1.1rem;
+}
+
+.modal-info ul {
+    margin: 0;
+    padding-left: 1.5rem;
+}
+
+.modal-info li {
+    margin-bottom: 0.5rem;
+    color: #495057;
+    line-height: 1.4;
+}
+
+/* Mejoras visuales adicionales */
+.btn-primary {
+    background: linear-gradient(135deg, #1A2238 0%, #2A3A58 100%);
+    border: none;
+    transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #2A3A58 0%, #1A2238 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(26, 34, 56, 0.3);
+}
+
+.btn-secondary {
+    background: #E0E3E7;
+    color: #1A2238;
+    border: 1px solid #D0D3D7;
+    transition: all 0.3s ease;
+}
+
+.btn-secondary:hover {
+    background: #D0D3D7;
+    border-color: #BDC0C4;
+    transform: translateY(-1px);
+}
+
+/* Scroll suave para tablas largas */
+.table-container::-webkit-scrollbar {
+    height: 8px;
+}
+
+.table-container::-webkit-scrollbar-track {
+    background: #F1F1F1;
+    border-radius: 4px;
+}
+
+.table-container::-webkit-scrollbar-thumb {
+    background: #1A2238;
+    border-radius: 4px;
+}
+
+.table-container::-webkit-scrollbar-thumb:hover {
+    background: #2A3A58;
+}

@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Autostock - Vendedor Dashboard</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Header -->
+        <header class="dashboard-header vendedor-header">
+            <div class="header-content">
+                <h1>Autostock - Vendedor</h1>
+                <div class="user-info">
+                    <span>Panel de Ventas</span>
+                    <form action="/logout" method="post" style="display: inline;">
+                        <button type="submit" class="btn btn-secondary">Cerrar Sesión</button>
+                    </form>
+                </div>
+            </div>
+        </header>
+
+        <!-- Navigation -->
+        <nav class="dashboard-nav">
+            <a href="/vendedor/dashboard" class="nav-link active">Dashboard</a>
+            <a href="/vendedor/inventario" class="nav-link">Inventario</a>
+            <a href="/vendedor/ventas" class="nav-link">Registrar Venta</a>
+            <a href="/vendedor/ventas/historial" class="nav-link">Mi Historial</a>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="dashboard-main">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h3>Ventas del Día</h3>
+                    <div class="stat-number">${{ ventas_hoy }}</div>
+                </div>
+
+                <div class="stat-card">
+                    <h3>Cantidad de Ventas</h3>
+                    <div class="stat-number">{{ cantidad_ventas_hoy }}</div>
+                </div>
+
+                <div class="stat-card">
+                    <h3>Productos con Stock Bajo</h3>
+                    <div class="stat-number">{{ productos_bajo_stock }}</div>
+                </div>
+            </div>
+
+            <div class="content-section">
+                <h2>Mis Ventas Recientes</h2>
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Producto</th>
+                                <th>Cantidad</th>
+                                <th>Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for venta in ventas_recientes %}
+                            <tr>
+                                <td>{{ venta.fecha_venta.strftime('%d/%m/%Y %H:%M') }}</td>
+                                <td>{{ venta.producto.nombre }}</td>
+                                <td>{{ venta.cantidad_vendida }}</td>
+                                <td>${{ "%.0f"|format(venta.valor_total) }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="action-buttons">
+                <a href="/vendedor/ventas" class="btn btn-primary btn-large">Registrar Nueva Venta</a>
+                <a href="/vendedor/inventario" class="btn btn-secondary btn-large">Consultar Inventario</a>
+            </div>
+        </main>
+    </div>
+
+    <script src="/static/js/vendedor.js"></script>
+</body>
+</html>

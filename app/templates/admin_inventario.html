@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Autostock - Admin - Inventario</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <style>
+        /* Estilos específicos para modal de productos más grande */
+        #product-modal .modal-content {
+            max-width: 700px !important; /* Volver al tamaño original */
+            width: 95% !important;
+            padding: 3rem !important; /* Padding interno grande */
+        }
+
+        #product-modal .modal-header {
+            margin: -3rem -3rem 2rem -3rem !important;
+            padding: 2.5rem 3rem !important;
+        }
+
+        #product-modal .form-group {
+            margin-bottom: 2rem;
+        }
+
+        #product-modal .form-group label {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            display: block;
+            color: #1A2238;
+        }
+
+        #product-modal .form-group input,
+        #product-modal .form-group select {
+            width: 100%;
+            padding: 1.25rem;
+            font-size: 1.1rem;
+            border: 2px solid #E0E3E7;
+            border-radius: 8px;
+            transition: border-color 0.3s ease;
+        }
+
+        #product-modal .form-group input:focus,
+        #product-modal .form-group select:focus {
+            outline: none;
+            border-color: #3AB795;
+            box-shadow: 0 0 0 3px rgba(58, 183, 149, 0.1);
+        }
+
+        #product-modal .modal-actions {
+            margin: 2rem -3rem -3rem -3rem !important;
+            padding: 2.5rem 3rem !important;
+            background: #F8F9FA;
+            border-top: 1px solid #E0E3E7;
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+        }
+
+        #product-modal .modal-actions .btn {
+            padding: 1rem 2rem;
+            font-size: 1.1rem;
+            min-width: 140px;
+        }
+
+        /* Layout en grid para los campos */
+        #product-modal .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+
+        #product-modal .form-grid .form-group {
+            margin-bottom: 0;
+        }
+
+        /* Campo de descripción más grande */
+        #product-modal .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+
+        /* Responsive para móviles */
+        @media (max-width: 768px) {
+            #product-modal .modal-content {
+                width: 98% !important;
+                margin: 1% auto !important;
+                padding: 2rem 1.5rem !important;
+            }
+
+            #product-modal .modal-header {
+                margin: -2rem -1.5rem 2rem -1.5rem !important;
+                padding: 2rem 1.5rem !important;
+            }
+
+            #product-modal .form-grid {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+
+            #product-modal .modal-actions {
+                margin: 2rem -1.5rem -2rem -1.5rem !important;
+                padding: 2rem 1.5rem !important;
+                flex-direction: column;
+            }
+
+            #product-modal .modal-actions .btn {
+                width: 100%;
+                margin-bottom: 0.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Header -->
+        <header class="dashboard-header admin-header">
+            <div class="header-content">
+                <h1>Autostock - Gestión de Inventario</h1>
+                <div class="user-info">
+                    <a href="/negocio/dashboard" class="btn btn-secondary">← Volver al Dashboard</a>
+                    <form action="/logout" method="post" style="display: inline;">
+                        <button type="submit" class="btn btn-secondary">Cerrar Sesión</button>
+                    </form>
+                </div>
+            </div>
+        </header>
+
+        <!-- Navigation -->
+        <nav class="dashboard-nav">
+            <a href="/negocio/dashboard" class="nav-link">Dashboard</a>
+            <a href="/negocio/inventario" class="nav-link active">Inventario</a>
+            <a href="/negocio/ventas" class="nav-link">Ventas</a>
+            <a href="/negocio/usuarios" class="nav-link">Usuarios</a>
+            <a href="/negocio/reportes" class="nav-link">Reportes</a>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="dashboard-main">
+            <div class="content-section">
+                <div class="section-header">
+                    <h2>Productos en Inventario</h2>
+                    <button class="btn btn-primary" onclick="showModal('product-modal')">Agregar Producto</button>
+                </div>
+
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Código</th>
+                                <th>Nombre</th>
+                                <th>Categoría</th>
+                                <th>Precio</th>
+                                <th>Cantidad</th>
+                                <th>Proveedor</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for producto in productos %}
+                            <tr>
+                                <td>{{ producto.codigo }}</td>
+                                <td>{{ producto.nombre }}</td>
+                                <td>{{ producto.categoria or 'Sin categoría' }}</td>
+                                <td>${{ "%.0f"|format(producto.precio) }}</td>
+                                <td>
+                                    <span class="{% if producto.cantidad <= 5 %}text-red{% endif %}">
+                                        {{ producto.cantidad }}
+                                    </span>
+                                </td>
+                                <td>{{ producto.proveedor or 'N/A' }}</td>
+                                <td>
+                                    <button class="btn btn-sm" onclick="editProduct({{ producto.id }}, '{{ producto.nombre }}', '{{ producto.codigo }}', '{{ producto.categoria or '' }}', {{ producto.precio }}, {{ producto.cantidad }}, '{{ producto.proveedor or '' }}')">Editar</button>
+                                    <form action="/negocio/inventario/{{ producto.id }}/delete" method="post" style="display: inline;" onsubmit="return confirm('¿Eliminar este producto?')">
+                                        <button type="submit" class="btn btn-sm btn-danger">Eliminar</button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal para crear/editar producto -->
+    <div id="product-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-title">Agregar Producto</h3>
+                <span class="modal-close">&times;</span>
+            </div>
+            <form id="product-form" action="/negocio/inventario" method="post">
+                <input type="hidden" id="product-id" name="id" value="">
+
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="nombre">Nombre del Producto</label>
+                        <input type="text" id="nombre" name="nombre" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="codigo">Código</label>
+                        <input type="text" id="codigo" name="codigo" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="categoria">Categoría</label>
+                        <input type="text" id="categoria" name="categoria">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="precio">Precio ($)</label>
+                        <input type="number" id="precio" name="precio" step="0.01" min="0" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="cantidad">Cantidad</label>
+                        <input type="number" id="cantidad" name="cantidad" min="0" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="proveedor">Proveedor</label>
+                        <input type="text" id="proveedor" name="proveedor">
+                    </div>
+                </div>
+
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('product-modal')">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Guardar Producto</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <style>
+        .text-red {
+            color: #dc3545;
+            font-weight: bold;
+        }
+
+        .btn-danger {
+            background-color: #dc3545;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background-color: #c82333;
+        }
+    </style>
+
+    <script src="/static/js/main.js"></script>
+    <script>
+        function showModal(modalId) {
+            document.getElementById(modalId).style.display = 'block';
+            document.getElementById('modal-title').textContent = 'Agregar Producto';
+            document.getElementById('product-form').reset();
+            document.getElementById('product-id').value = '';
+        }
+
+        function editProduct(id, nombre, codigo, categoria, precio, cantidad, proveedor) {
+            document.getElementById('modal-title').textContent = 'Editar Producto';
+            document.getElementById('product-id').value = id;
+            document.getElementById('nombre').value = nombre;
+            document.getElementById('codigo').value = codigo;
+            document.getElementById('categoria').value = categoria;
+            document.getElementById('precio').value = precio;
+            document.getElementById('cantidad').value = cantidad;
+            document.getElementById('proveedor').value = proveedor;
+
+            document.getElementById('product-form').action = `/negocio/inventario/${id}`;
+            document.getElementById('product-modal').style.display = 'block';
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        // Cerrar modal al hacer click fuera
+        window.onclick = function(event) {
+            const modals = document.getElementsByClassName('modal');
+            for (let modal of modals) {
+                if (event.target == modal) {
+                    modal.style.display = 'none';
+                }
+            }
+        }
+    </script>
+</body>
+</html>

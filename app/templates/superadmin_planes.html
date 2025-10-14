@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Autostock - SuperAdmin - Planes</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Header -->
+        <header class="dashboard-header superadmin-header">
+            <div class="header-content">
+                <h1>Autostock - Gestión de Planes</h1>
+                <div class="user-info">
+                    <a href="/superadmin/dashboard" class="btn btn-secondary">← Volver al Dashboard</a>
+                    <form action="/logout" method="post" style="display: inline;">
+                        <button type="submit" class="btn btn-secondary">Cerrar Sesión</button>
+                    </form>
+                </div>
+            </div>
+        </header>
+
+        <!-- Navigation -->
+        <nav class="dashboard-nav">
+            <a href="/superadmin/dashboard" class="nav-link">Dashboard</a>
+            <a href="/superadmin/negocios" class="nav-link">Negocios</a>
+            <a href="/superadmin/planes" class="nav-link active">Planes</a>
+            <a href="/superadmin/backups" class="nav-link">Backups</a>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="dashboard-main">
+            <div class="content-section">
+                <div class="section-header">
+                    <h2>Planes de Suscripción</h2>
+                    <button class="btn btn-primary" onclick="showModal('plan-modal')">Crear Nuevo Plan</button>
+                </div>
+
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Nombre</th>
+                                <th>Descripción</th>
+                                <th>Precio</th>
+                                <th>Duración (días)</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for plan in planes %}
+                            <tr>
+                                <td>{{ plan.id }}</td>
+                                <td>{{ plan.nombre_plan }}</td>
+                                <td>{{ plan.descripcion or 'Sin descripción' }}</td>
+                                <td>${{ "%.0f"|format(plan.precio) }}</td>
+                                <td>{{ plan.duracion_dias }}</td>
+                                <td>
+                                    <button class="btn btn-sm" onclick="editPlan({{ plan.id }}, '{{ plan.nombre_plan }}', '{{ plan.descripcion or '' }}', {{ plan.precio }}, {{ plan.duracion_dias }})">Editar</button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal para crear/editar plan -->
+    <div id="plan-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-title">Crear Nuevo Plan</h3>
+                <span class="modal-close">&times;</span>
+            </div>
+            <form id="plan-form" action="/superadmin/planes" method="post">
+                <input type="hidden" id="plan-id" name="id" value="">
+
+                <div class="form-group">
+                    <label for="nombre_plan">Nombre del Plan</label>
+                    <input type="text" id="nombre_plan" name="nombre_plan" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="descripcion">Descripción</label>
+                    <textarea id="descripcion" name="descripcion" rows="3"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="precio">Precio ($)</label>
+                    <input type="number" id="precio" name="precio" step="0.01" min="0" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="duracion_dias">Duración (días)</label>
+                    <input type="number" id="duracion_dias" name="duracion_dias" min="1" required>
+                </div>
+
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('plan-modal')">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Guardar Plan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="/static/js/main.js"></script>
+    <script>
+        function showModal(modalId) {
+            document.getElementById(modalId).style.display = 'block';
+            document.getElementById('modal-title').textContent = 'Crear Nuevo Plan';
+            document.getElementById('plan-form').reset();
+            document.getElementById('plan-id').value = '';
+        }
+
+        function editPlan(id, nombre, descripcion, precio, duracion) {
+            document.getElementById('modal-title').textContent = 'Editar Plan';
+            document.getElementById('plan-id').value = id;
+            document.getElementById('nombre_plan').value = nombre;
+            document.getElementById('descripcion').value = descripcion;
+            document.getElementById('precio').value = precio;
+            document.getElementById('duracion_dias').value = duracion;
+
+            document.getElementById('plan-form').action = `/superadmin/planes/${id}`;
+            document.getElementById('plan-modal').style.display = 'block';
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        // Cerrar modal al hacer click fuera
+        window.onclick = function(event) {
+            const modals = document.getElementsByClassName('modal');
+            for (let modal of modals) {
+                if (event.target == modal) {
+                    modal.style.display = 'none';
+                }
+            }
+        }
+    </script>
+</body>
+</html>
