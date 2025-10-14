@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Autostock - Admin - Análisis de Tendencias</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .periodo-selector {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+            margin-bottom: 3rem;
+        }
+
+        .periodo-selector h3 {
+            margin-bottom: 1.5rem;
+            color: #1A2238;
+            border-bottom: 2px solid #17A2B8;
+            padding-bottom: 0.5rem;
+        }
+
+        .periodo-buttons {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .periodo-btn {
+            padding: 0.75rem 1.5rem;
+            border: 2px solid #17A2B8;
+            background: white;
+            color: #17A2B8;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .periodo-btn:hover, .periodo-btn.active {
+            background: #17A2B8;
+            color: white;
+        }
+
+        .charts-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .chart-card {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+        }
+
+        .chart-card h3 {
+            margin-bottom: 1.5rem;
+            color: #1A2238;
+            border-bottom: 2px solid #17A2B8;
+            padding-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .chart-wrapper {
+            position: relative;
+            width: 100%;
+            height: 350px;
+            margin: 0 auto;
+        }
+
+        #mensualChart, #semanalChart, #diaSemanaChart {
+            max-width: 100% !important;
+            height: 100% !important;
+        }
+
+        .tendencia-indicators {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .tendencia-card {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .tendencia-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #17A2B8, #20C997);
+        }
+
+        .tendencia-card.positive::before {
+            background: linear-gradient(90deg, #28A745, #20C997);
+        }
+
+        .tendencia-card.negative::before {
+            background: linear-gradient(90deg, #DC3545, #FD7E14);
+        }
+
+        .tendencia-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #17A2B8;
+            margin-bottom: 0.5rem;
+        }
+
+        .tendencia-card.positive .tendencia-value {
+            color: #28A745;
+        }
+
+        .tendencia-card.negative .tendencia-value {
+            color: #DC3545;
+        }
+
+        .tendencia-label {
+            color: #666;
+            font-size: 1rem;
+            font-weight: 500;
+        }
+
+        .tendencia-subtitle {
+            color: #888;
+            font-size: 0.9rem;
+            margin-top: 0.25rem;
+        }
+
+        .top-products-trends {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+
+        .top-products-trends h3 {
+            margin-bottom: 1.5rem;
+            color: #1A2238;
+            border-bottom: 2px solid #17A2B8;
+            padding-bottom: 0.5rem;
+        }
+
+        .products-trends-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .product-trend-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            background: linear-gradient(90deg, #E0F2FE 0%, #FFF 100%);
+            border-radius: 8px;
+            border-left: 4px solid #17A2B8;
+            transition: transform 0.3s ease;
+        }
+
+        .product-trend-item:hover {
+            transform: translateX(4px);
+        }
+
+        .product-trend-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .product-rank {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #17A2B8, #20C997);
+            color: white;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
+        .product-trend-details h4 {
+            margin: 0 0 0.25rem 0;
+            color: #1A2238;
+            font-size: 1rem;
+        }
+
+        .product-trend-details .meta {
+            color: #666;
+            font-size: 0.85rem;
+        }
+
+        .product-trend-value {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #17A2B8;
+            text-align: right;
+        }
+
+        .peaks-valleys {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .peak-valley-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .peak-valley-card.peak {
+            border-left: 4px solid #28A745;
+        }
+
+        .peak-valley-card.valley {
+            border-left: 4px solid #DC3545;
+        }
+
+        .peak-valley-card h4 {
+            margin: 0 0 1rem 0;
+            color: #1A2238;
+            font-size: 1.1rem;
+        }
+
+        .peak-valley-value {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .peak-valley-card.peak .peak-valley-value {
+            color: #28A745;
+        }
+
+        .peak-valley-card.valley .peak-valley-value {
+            color: #DC3545;
+        }
+
+        .peak-valley-label {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .peaks-valleys {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .tendencia-indicators {
+                grid-template-columns: 1fr;
+            }
+
+            .periodo-buttons {
+                flex-direction: column;
+            }
+
+            .periodo-btn {
+                width: 100%;
+                text-align: center;
+            }
+
+            .chart-card {
+                padding: 1.5rem;
+            }
+
+            .chart-wrapper {
+                height: 280px;
+            }
+
+            .top-products-trends {
+                padding: 1.5rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .chart-wrapper {
+                height: 250px;
+            }
+
+            .tendencia-value {
+                font-size: 2rem;
+            }
+
+            .product-trend-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.75rem;
+            }
+
+            .product-trend-value {
+                text-align: left;
+            }
+
+            .peak-valley-card {
+                padding: 1.25rem;
+            }
+        }
+    </style>
+</head>
+<body class="admin-dashboard">
+    <div class="dashboard-container">
+        <!-- Header -->
+        <header class="dashboard-header admin-header">
+            <div class="header-content">
+                <h1>Autostock - Análisis de Tendencias</h1>
+                <div class="user-info">
+                    <a href="/negocio/reportes" class="btn btn-secondary">← Centro de Reportes</a>
+                    <form action="/logout" method="post" style="display: inline;">
+                        <button type="submit" class="btn btn-secondary">Cerrar Sesión</button>
+                    </form>
+                </div>
+            </div>
+        </header>
+
+        <!-- Navigation -->
+        <nav class="dashboard-nav">
+            <a href="/negocio/dashboard" class="nav-link">Dashboard</a>
+            <a href="/negocio/inventario" class="nav-link">Inventario</a>
+            <a href="/negocio/ventas" class="nav-link">Ventas</a>
+            <a href="/negocio/usuarios" class="nav-link">Usuarios</a>
+            <a href="/negocio/reportes" class="nav-link active">Reportes</a>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="dashboard-main">
+            <div class="content-section">
+                <h2>📈 Análisis de Tendencias</h2>
+                <p>Identifica patrones y tendencias en tus datos de ventas</p>
+
+                <!-- Selector de período -->
+                <div class="periodo-selector">
+                    <h3>Seleccionar Período de Análisis</h3>
+                    <div class="periodo-buttons">
+                        <a href="?periodo=3m" class="periodo-btn {% if periodo == '3m' %}active{% endif %}">Últimos 3 Meses</a>
+                        <a href="?periodo=6m" class="periodo-btn {% if periodo == '6m' %}active{% endif %}">Últimos 6 Meses</a>
+                        <a href="?periodo=12m" class="periodo-btn {% if periodo == '12m' %}active{% endif %}">Últimos 12 Meses</a>
+                    </div>
+                    <p style="margin-top: 1rem; color: #666;">Mostrando tendencias para: <strong>{{ periodo_nombre }}</strong></p>
+                </div>
+
+                <!-- Indicadores de tendencia -->
+                <div class="tendencia-indicators">
+                    <div class="tendencia-card {% if tendencia_ventas_pct >= 0 %}positive{% else %}negative{% endif %}">
+                        <div class="tendencia-value">{{ "%.1f"|format(tendencia_ventas_pct) }}%</div>
+                        <div class="tendencia-label">Tendencia de Ventas</div>
+                        <div class="tendencia-subtitle">Comparación período completo</div>
+                    </div>
+
+                    <div class="tendencia-card {% if tendencia_ingresos_pct >= 0 %}positive{% else %}negative{% endif %}">
+                        <div class="tendencia-value">{{ "%.1f"|format(tendencia_ingresos_pct) }}%</div>
+                        <div class="tendencia-label">Tendencia de Ingresos</div>
+                        <div class="tendencia-subtitle">Comparación período completo</div>
+                    </div>
+                </div>
+
+                <!-- Gráficos de tendencias -->
+                <div class="charts-grid">
+                    <div class="chart-card">
+                        <h3>📊 Tendencia Mensual</h3>
+                        <div class="chart-wrapper">
+                            <canvas id="mensualChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="chart-card">
+                        <h3>📈 Tendencia Semanal</h3>
+                        <div class="chart-wrapper">
+                            <canvas id="semanalChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="chart-card">
+                        <h3>📅 Rendimiento por Día de la Semana</h3>
+                        <div class="chart-wrapper">
+                            <canvas id="diaSemanaChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Picos y valles -->
+                {% if mejor_mes and peor_mes %}
+                <div class="peaks-valleys">
+                    <div class="peak-valley-card peak">
+                        <h4>🏔️ Mejor Mes</h4>
+                        <div class="peak-valley-value">{{ mejor_mes.ventas }}</div>
+                        <div class="peak-valley-label">ventas en {{ mejor_mes.mes_formateado }}</div>
+                    </div>
+
+                    <div class="peak-valley-card valley">
+                        <h4>🏕️ Mes Más Bajo</h4>
+                        <div class="peak-valley-value">{{ peor_mes.ventas }}</div>
+                        <div class="peak-valley-label">ventas en {{ peor_mes.mes_formateado }}</div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Top productos por tendencias -->
+                <div class="top-products-trends">
+                    <h3>🏆 Productos con Mejor Tendencia</h3>
+                    <div class="products-trends-list">
+                        {% for producto in productos_tendencia %}
+                        <div class="product-trend-item">
+                            <div class="product-trend-info">
+                                <div class="product-rank">{{ loop.index }}</div>
+                                <div class="product-trend-details">
+                                    <h4>{{ producto.nombre }}</h4>
+                                    <div class="meta">
+                                        {{ producto.total_vendido }} unidades •
+                                        {{ producto.ventas_count }} ventas
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="product-trend-value">${{ "%.0f"|format(producto.total_ingresos) }}</div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="/static/js/main.js"></script>
+    <script>
+        // Datos para los gráficos
+        const tendenciasMensuales = {{ tendencias_mensuales|tojson }};
+        const tendenciasSemanales = {{ tendencias_semanales|tojson }};
+        const tendenciasDiaSemana = {{ tendencias_dia_semana|tojson }};
+
+        // Gráfico mensual
+        const ctxMensual = document.getElementById('mensualChart').getContext('2d');
+        const mensualChart = new Chart(ctxMensual, {
+            type: 'line',
+            data: {
+                labels: tendenciasMensuales.map(item => item.mes_formateado),
+                datasets: [{
+                    label: 'Ventas',
+                    data: tendenciasMensuales.map(item => item.ventas),
+                    borderColor: '#17A2B8',
+                    backgroundColor: 'rgba(23, 162, 184, 0.1)',
+                    borderWidth: 3,
+                    yAxisID: 'y',
+                    tension: 0.4,
+                    pointBackgroundColor: '#17A2B8',
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2,
+                    pointRadius: 5,
+                    pointHoverRadius: 7
+                }, {
+                    label: 'Ingresos ($)',
+                    data: tendenciasMensuales.map(item => item.ingresos),
+                    borderColor: '#28A745',
+                    backgroundColor: 'rgba(40, 167, 69, 0.1)',
+                    borderWidth: 3,
+                    yAxisID: 'y1',
+                    tension: 0.4,
+                    pointBackgroundColor: '#28A745',
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2,
+                    pointRadius: 5,
+                    pointHoverRadius: 7
+                }]
+            },
+            options: {
+                responsive: false,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top'
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0,0,0,0.8)',
+                        titleColor: '#fff',
+                        bodyColor: '#fff',
+                        borderColor: '#17A2B8',
+                        borderWidth: 1,
+                        callbacks: {
+                            label: function(context) {
+                                if (context.datasetIndex === 0) {
+                                    return 'Ventas: ' + context.parsed.y;
+                                } else {
+                                    return 'Ingresos: $' + context.parsed.y.toLocaleString();
+                                }
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        type: 'linear',
+                        display: true,
+                        position: 'left',
+                        title: {
+                            display: true,
+                            text: 'Número de Ventas'
+                        },
+                        grid: {
+                            color: 'rgba(0,0,0,0.1)'
+                        }
+                    },
+                    y1: {
+                        type: 'linear',
+                        display: true,
+                        position: 'right',
+                        title: {
+                            display: true,
+                            text: 'Ingresos ($)'
+                        },
+                        grid: {
+                            drawOnChartArea: false,
+                        },
+                        ticks: {
+                            callback: function(value) {
+                                return '$' + value.toLocaleString();
+                            }
+                        }
+                    },
+                    x: {
+                        ticks: {
+                            font: {
+                                size: 11
+                            }
+                        },
+                        grid: {
+                            display: false
+                        }
+                    }
+                },
+                elements: {
+                    point: {
+                        hoverRadius: 8
+                    }
+                }
+            }
+        });
+
+        // Gráfico semanal
+        const ctxSemanal = document.getElementById('semanalChart').getContext('2d');
+        const semanalChart = new Chart(ctxSemanal, {
+            type: 'bar',
+            data: {
+                labels: tendenciasSemanales.map((item, index) => 'Semana ' + (index + 1)),
+                datasets: [{
+                    label: 'Ventas por Semana',
+                    data: tendenciasSemanales.map(item => item.ventas),
+                    backgroundColor: 'rgba(23, 162, 184, 0.8)',
+                    borderColor: '#17A2B8',
+                    borderWidth: 2,
+                    borderRadius: 4,
+                    borderSkipped: false
+                }]
+            },
+            options: {
+                responsive: false,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0,0,0,0.8)',
+                        titleColor: '#fff',
+                        bodyColor: '#fff',
+                        borderColor: '#17A2B8',
+                        borderWidth: 1,
+                        callbacks: {
+                            label: function(context) {
+                                return 'Ventas: ' + context.parsed.y;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            font: {
+                                size: 11
+                            }
+                        },
+                        grid: {
+                            color: 'rgba(0,0,0,0.1)'
+                        }
+                    },
+                    x: {
+                        ticks: {
+                            font: {
+                                size: 11
+                            }
+                        },
+                        grid: {
+                            display: false
+                        }
+                    }
+                }
+            }
+        });
+
+        // Gráfico por día de la semana
+        const ctxDiaSemana = document.getElementById('diaSemanaChart').getContext('2d');
+        const diaSemanaChart = new Chart(ctxDiaSemana, {
+            type: 'bar',
+            data: {
+                labels: tendenciasDiaSemana.map(item => item.dia),
+                datasets: [{
+                    label: 'Ingresos por Día',
+                    data: tendenciasDiaSemana.map(item => item.ingresos),
+                    backgroundColor: 'rgba(40, 167, 69, 0.8)',
+                    borderColor: '#28A745',
+                    borderWidth: 2,
+                    borderRadius: 4,
+                    borderSkipped: false
+                }]
+            },
+            options: {
+                responsive: false,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0,0,0,0.8)',
+                        titleColor: '#fff',
+                        bodyColor: '#fff',
+                        borderColor: '#28A745',
+                        borderWidth: 1,
+                        callbacks: {
+                            label: function(context) {
+                                return '$' + context.parsed.y.toLocaleString();
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return '$' + value.toLocaleString();
+                            },
+                            font: {
+                                size: 11
+                            }
+                        },
+                        grid: {
+                            color: 'rgba(0,0,0,0.1)'
+                        }
+                    },
+                    x: {
+                        ticks: {
+                            font: {
+                                size: 11
+                            }
+                        },
+                        grid: {
+                            display: false
+                        }
+                    }
+                }
+            }
+        });
+
+        // Animación de carga
+        document.addEventListener('DOMContentLoaded', function() {
+            // Fijar tamaño de gráficos
+            const charts = document.querySelectorAll('.chart-wrapper canvas');
+            charts.forEach(canvas => {
+                canvas.style.width = '100%';
+                canvas.style.height = '350px';
+                canvas.width = canvas.parentElement.offsetWidth;
+                canvas.height = 350;
+            });
+
+            // Animar cards de tendencia
+            const tendenciaCards = document.querySelectorAll('.tendencia-card');
+            tendenciaCards.forEach((card, index) => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+                card.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
+
+                setTimeout(() => {
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, index * 150);
+            });
+
+            // Animar picos y valles
+            const peakValleyCards = document.querySelectorAll('.peak-valley-card');
+            peakValleyCards.forEach((card, index) => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+                card.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
+
+                setTimeout(() => {
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, 600 + index * 200);
+            });
+
+            // Animar productos
+            const productItems = document.querySelectorAll('.product-trend-item');
+            productItems.forEach((item, index) => {
+                item.style.opacity = '0';
+                item.style.transform = 'translateX(-20px)';
+                item.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
+
+                setTimeout(() => {
+                    item.style.opacity = '1';
+                    item.style.transform = 'translateX(0)';
+                }, 800 + index * 100);
+            });
+        });
+    </script>
+</body>
+</html>

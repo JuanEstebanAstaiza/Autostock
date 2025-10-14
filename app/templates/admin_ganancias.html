@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Autostock - Admin - Análisis de Ganancias</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .ganancias-overview {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .overview-card {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+            text-align: center;
+            border-top: 4px solid #FFC107;
+            transition: transform 0.3s ease;
+        }
+
+        .overview-card:hover {
+            transform: translateY(-4px);
+        }
+
+        .overview-card.actual {
+            border-top-color: #FFC107;
+        }
+
+        .overview-card.anterior {
+            border-top-color: #6C757D;
+        }
+
+        .overview-card.cambio {
+            border-top-color: #17A2B8;
+        }
+
+        .overview-card.margen {
+            border-top-color: #28A745;
+        }
+
+        .overview-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #1A2238;
+            margin-bottom: 0.5rem;
+        }
+
+        .overview-label {
+            color: #666;
+            font-size: 1rem;
+            font-weight: 500;
+        }
+
+        .overview-subtitle {
+            color: #888;
+            font-size: 0.9rem;
+            margin-top: 0.25rem;
+        }
+
+        .cambio-positive {
+            color: #28A745 !important;
+        }
+
+        .cambio-negative {
+            color: #DC3545 !important;
+        }
+
+        .charts-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .chart-card {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+        }
+
+        .chart-card h3 {
+            margin-bottom: 1.5rem;
+            color: #1A2238;
+            border-bottom: 2px solid #FFC107;
+            padding-bottom: 0.5rem;
+        }
+
+        .chart-wrapper {
+            position: relative;
+            width: 100%;
+            height: 350px;
+            margin: 0 auto;
+        }
+
+        #mensualChart, #productosChart {
+            max-width: 100% !important;
+            height: 100% !important;
+        }
+
+        .productos-ganancias-section {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+
+        .productos-ganancias-section h3 {
+            margin-bottom: 1.5rem;
+            color: #1A2238;
+            border-bottom: 2px solid #FFC107;
+            padding-bottom: 0.5rem;
+        }
+
+        .productos-ganancias-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .producto-ganancia-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            background: linear-gradient(90deg, #FFF8E1 0%, #FFF 100%);
+            border-radius: 8px;
+            border-left: 4px solid #FFC107;
+            transition: transform 0.3s ease;
+        }
+
+        .producto-ganancia-item:hover {
+            transform: translateX(4px);
+        }
+
+        .producto-ganancia-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .producto-rank {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #FFC107, #FF8C00);
+            color: white;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
+        .producto-ganancia-details h4 {
+            margin: 0 0 0.25rem 0;
+            color: #1A2238;
+            font-size: 1rem;
+        }
+
+        .producto-ganancia-details .meta {
+            color: #666;
+            font-size: 0.85rem;
+        }
+
+        .producto-ganancia-valor {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #FFC107;
+            text-align: right;
+        }
+
+        .stats-section {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+        }
+
+        .stats-section h3 {
+            margin-bottom: 1.5rem;
+            color: #1A2238;
+            border-bottom: 2px solid #FFC107;
+            padding-bottom: 0.5rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+        }
+
+        .stat-item {
+            background: #F8F9FA;
+            padding: 1.5rem;
+            border-radius: 8px;
+            text-align: center;
+            border-left: 4px solid #FFC107;
+        }
+
+        .stat-item .value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #FFC107;
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-item .label {
+            color: #666;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .mejor-mes-highlight {
+            background: linear-gradient(135deg, #FFC107, #FF8C00);
+            color: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            text-align: center;
+            margin-top: 1rem;
+        }
+
+        .mejor-mes-highlight h4 {
+            margin: 0 0 0.5rem 0;
+            font-size: 1.1rem;
+        }
+
+        .mejor-mes-highlight .value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 0.25rem;
+        }
+
+        .mejor-mes-highlight .label {
+            color: rgba(255,255,255,0.9);
+            font-size: 0.9rem;
+        }
+
+        .margen-info {
+            background: #FFF3CD;
+            border: 1px solid #FFEAA7;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .margen-info .info-text {
+            color: #856404;
+            font-weight: 500;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .charts-section {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .ganancias-overview {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+
+            .overview-card {
+                padding: 1.5rem;
+            }
+
+            .overview-value {
+                font-size: 2rem;
+            }
+
+            .chart-card {
+                padding: 1.5rem;
+            }
+
+            .chart-wrapper {
+                height: 280px;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .stat-item {
+                padding: 1.25rem;
+            }
+
+            .productos-ganancias-list {
+                gap: 0.75rem;
+            }
+
+            .producto-ganancia-item {
+                padding: 0.875rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .chart-wrapper {
+                height: 250px;
+            }
+
+            .overview-value {
+                font-size: 1.8rem;
+            }
+
+            .producto-ganancia-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.75rem;
+            }
+
+            .producto-ganancia-valor {
+                text-align: left;
+            }
+        }
+    </style>
+</head>
+<body class="admin-dashboard">
+    <div class="dashboard-container">
+        <!-- Header -->
+        <header class="dashboard-header admin-header">
+            <div class="header-content">
+                <h1>Autostock - Análisis de Ganancias</h1>
+                <div class="user-info">
+                    <a href="/negocio/reportes" class="btn btn-secondary">← Centro de Reportes</a>
+                    <form action="/logout" method="post" style="display: inline;">
+                        <button type="submit" class="btn btn-secondary">Cerrar Sesión</button>
+                    </form>
+                </div>
+            </div>
+        </header>
+
+        <!-- Navigation -->
+        <nav class="dashboard-nav">
+            <a href="/negocio/dashboard" class="nav-link">Dashboard</a>
+            <a href="/negocio/inventario" class="nav-link">Inventario</a>
+            <a href="/negocio/ventas" class="nav-link">Ventas</a>
+            <a href="/negocio/usuarios" class="nav-link">Usuarios</a>
+            <a href="/negocio/reportes" class="nav-link active">Reportes</a>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="dashboard-main">
+            <div class="content-section">
+                <h2>💰 Análisis de Ganancias</h2>
+                <p>Seguimiento detallado de las ganancias de tu negocio</p>
+
+                <!-- Información sobre margen de ganancia -->
+                <div class="margen-info">
+                    <div class="info-text">
+                        <strong>Nota:</strong> Las ganancias se calculan asumiendo un margen de ganancia del {{ "%.0f"|format(margen_ganancia) }}% sobre los ingresos.
+                        Puedes ajustar este margen según tu modelo de negocio real.
+                    </div>
+                </div>
+
+                <!-- Resumen de ganancias -->
+                <div class="ganancias-overview">
+                    <div class="overview-card actual">
+                        <div class="overview-value">${{ "%.0f"|format(ganancias_mes_actual) }}</div>
+                        <div class="overview-label">Ganancias Mes Actual</div>
+                        <div class="overview-subtitle">Margen {{ "%.0f"|format(margen_ganancia) }}%</div>
+                    </div>
+
+                    <div class="overview-card anterior">
+                        <div class="overview-value">${{ "%.0f"|format(ganancias_mes_anterior) }}</div>
+                        <div class="overview-label">Ganancias Mes Anterior</div>
+                        <div class="overview-subtitle">Margen {{ "%.0f"|format(margen_ganancia) }}%</div>
+                    </div>
+
+                    <div class="overview-card cambio">
+                        <div class="overview-value {% if cambio_porcentaje >= 0 %}cambio-positive{% else %}cambio-negative{% endif %}">
+                            {{ "%.1f"|format(cambio_porcentaje) }}%
+                        </div>
+                        <div class="overview-label">Cambio</div>
+                        <div class="overview-subtitle">vs mes anterior</div>
+                    </div>
+
+                    <div class="overview-card margen">
+                        <div class="overview-value">{{ "%.0f"|format(margen_ganancia) }}%</div>
+                        <div class="overview-label">Margen de Ganancia</div>
+                        <div class="overview-subtitle">Configurado</div>
+                    </div>
+                </div>
+
+                <!-- Gráficos -->
+                <div class="charts-section">
+                    <div class="chart-card">
+                        <h3>📈 Ganancias Mensuales</h3>
+                        <div class="chart-wrapper">
+                            <canvas id="mensualChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="productos-ganancias-section">
+                        <h3>🏆 Top Productos por Ganancias</h3>
+                        <div class="productos-ganancias-list">
+                            {% for producto in ganancias_por_producto %}
+                            <div class="producto-ganancia-item">
+                                <div class="producto-ganancia-info">
+                                    <div class="producto-rank">{{ loop.index }}</div>
+                                    <div class="producto-ganancia-details">
+                                        <h4>{{ producto.producto }}</h4>
+                                        <div class="meta">
+                                            {{ producto.cantidad }} unidades •
+                                            Ingresos: ${{ "%.0f"|format(producto.ingresos) }}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="producto-ganancia-valor">
+                                    ${{ "%.0f"|format(producto.ganancias) }}
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Estadísticas detalladas -->
+                <div class="stats-section">
+                    <h3>📊 Estadísticas del Año</h3>
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <span class="value">${{ "%.0f"|format(total_ganancias_anio) }}</span>
+                            <span class="label">Total del año</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="value">${{ "%.0f"|format(promedio_mensual) }}</span>
+                            <span class="label">Promedio mensual</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="value">{{ ganancias_mensuales|length }}</span>
+                            <span class="label">Meses analizados</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="value">{{ "%.0f"|format(margen_ganancia) }}%</span>
+                            <span class="label">Margen aplicado</span>
+                        </div>
+                    </div>
+
+                    {% if mejor_mes %}
+                    <div class="mejor-mes-highlight">
+                        <h4>🏆 Mejor Mes del Año</h4>
+                        <div class="value">${{ "%.0f"|format(mejor_mes.ganancias) }}</div>
+                        <div class="label">{{ mejor_mes.mes_formateado }} - Ingresos: ${{ "%.0f"|format(mejor_mes.ingresos) }}</div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="/static/js/main.js"></script>
+    <script>
+        // Datos para el gráfico de ganancias mensuales
+        const gananciasMensuales = {{ ganancias_mensuales|tojson }};
+
+        // Gráfico mensual
+        const ctxMensual = document.getElementById('mensualChart').getContext('2d');
+        const mensualChart = new Chart(ctxMensual, {
+            type: 'line',
+            data: {
+                labels: gananciasMensuales.map(item => {
+                    const date = new Date(item.mes + '-01');
+                    return date.toLocaleDateString('es-ES', { month: 'short', year: 'numeric' });
+                }),
+                datasets: [{
+                    label: 'Ganancias ($)',
+                    data: gananciasMensuales.map(item => item.ganancias),
+                    borderColor: '#FFC107',
+                    backgroundColor: 'rgba(255, 193, 7, 0.1)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4,
+                    pointBackgroundColor: '#FFC107',
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2,
+                    pointRadius: 5,
+                    pointHoverRadius: 7
+                }]
+            },
+            options: {
+                responsive: false,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0,0,0,0.8)',
+                        titleColor: '#fff',
+                        bodyColor: '#fff',
+                        borderColor: '#FFC107',
+                        borderWidth: 1,
+                        callbacks: {
+                            label: function(context) {
+                                return '$' + context.parsed.y.toLocaleString();
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return '$' + value.toLocaleString();
+                            },
+                            font: {
+                                size: 11
+                            }
+                        },
+                        grid: {
+                            color: 'rgba(0,0,0,0.1)'
+                        }
+                    },
+                    x: {
+                        ticks: {
+                            font: {
+                                size: 11
+                            }
+                        },
+                        grid: {
+                            display: false
+                        }
+                    }
+                },
+                elements: {
+                    point: {
+                        hoverRadius: 8
+                    }
+                }
+            }
+        });
+
+        // Animación de carga
+        document.addEventListener('DOMContentLoaded', function() {
+            // Fijar tamaño del gráfico
+            const canvas = document.getElementById('mensualChart');
+            const wrapper = document.querySelector('.chart-wrapper');
+
+            if (canvas && wrapper) {
+                canvas.style.width = '100%';
+                canvas.style.height = '350px';
+                canvas.width = wrapper.offsetWidth;
+                canvas.height = 350;
+            }
+
+            // Animar cards
+            const overviewCards = document.querySelectorAll('.overview-card');
+            overviewCards.forEach((card, index) => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+                card.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
+
+                setTimeout(() => {
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, index * 100);
+            });
+
+            // Animar productos
+            const productoItems = document.querySelectorAll('.producto-ganancia-item');
+            productoItems.forEach((item, index) => {
+                item.style.opacity = '0';
+                item.style.transform = 'translateX(-20px)';
+                item.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
+
+                setTimeout(() => {
+                    item.style.opacity = '1';
+                    item.style.transform = 'translateX(0)';
+                }, 400 + index * 100);
+            });
+        });
+    </script>
+</body>
+</html>

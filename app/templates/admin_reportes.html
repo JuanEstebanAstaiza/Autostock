@@ -5,6 +5,186 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Autostock - Admin - Reportes</title>
     <link rel="stylesheet" href="/static/css/styles.css">
+    <style>
+        .section-description {
+            color: #666;
+            font-size: 1.1rem;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .reportes-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .reporte-card {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+            border: 1px solid #E0E3E7;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .reporte-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+        }
+
+        .reporte-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        .reporte-content h3 {
+            color: #1A2238;
+            margin-bottom: 0.5rem;
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .reporte-content p {
+            color: #666;
+            margin-bottom: 1.5rem;
+            line-height: 1.5;
+        }
+
+        .reporte-links {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .reporte-links .btn {
+            flex: 1;
+            min-width: 120px;
+            text-align: center;
+        }
+
+        .estadisticas-rapidas {
+            background: #F8F9FA;
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .estadisticas-rapidas h3 {
+            margin-bottom: 1.5rem;
+            color: #1A2238;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .stats-grid .stat-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .stats-grid .stat-card h4 {
+            margin: 0 0 0.5rem 0;
+            color: #1A2238;
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        .stats-grid .stat-card .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #3AB795;
+            margin-bottom: 0.25rem;
+        }
+
+        .stats-grid .stat-card p {
+            margin: 0;
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .export-section {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+        }
+
+        .export-section h3 {
+            margin-bottom: 1.5rem;
+            color: #1A2238;
+        }
+
+        .export-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+        }
+
+        .export-buttons .btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 1rem 1.5rem;
+            text-decoration: none;
+        }
+
+        .export-icon {
+            font-size: 1.2rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .reportes-grid {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+
+            .reporte-card {
+                padding: 1.5rem;
+            }
+
+            .reporte-icon {
+                font-size: 2.5rem;
+            }
+
+            .reporte-links {
+                flex-direction: column;
+            }
+
+            .reporte-links .btn {
+                width: 100%;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .export-buttons {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .estadisticas-rapidas,
+            .export-section {
+                padding: 1.5rem;
+            }
+
+            .reporte-card {
+                padding: 1.25rem;
+            }
+        }
+    </style>
 </head>
 <body>
     <div class="dashboard-container">
@@ -33,14 +213,104 @@
         <!-- Main Content -->
         <main class="dashboard-main">
             <div class="content-section">
-                <h2>Reportes del Negocio</h2>
+                <h2>📊 Centro de Reportes</h2>
+                <p class="section-description">Accede a todos los reportes y análisis de tu negocio</p>
 
-                <div class="report-actions">
-                    <a href="/negocio/reportes/export/ventas" class="btn btn-primary">Exportar Ventas</a>
-                    <a href="/negocio/reportes/export/inventario" class="btn btn-primary">Exportar Inventario</a>
+                <!-- Reportes principales -->
+                <div class="reportes-grid">
+                    <div class="reporte-card">
+                        <div class="reporte-icon">📈</div>
+                        <div class="reporte-content">
+                            <h3>Reportes de Ventas</h3>
+                            <p>Análisis detallado de ventas por período, productos y vendedores</p>
+                            <div class="reporte-links">
+                                <a href="/negocio/reportes/ventas-recientes" class="btn btn-sm btn-primary">Ventas Recientes</a>
+                                <a href="/negocio/reportes/ventas-periodo" class="btn btn-sm">Por Período</a>
+                                <a href="/negocio/reportes/rendimiento-vendedores" class="btn btn-sm">Vendedores</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="reporte-card">
+                        <div class="reporte-icon">📦</div>
+                        <div class="reporte-content">
+                            <h3>Reportes de Inventario</h3>
+                            <p>Control de stock, productos más vendidos y alertas de inventario</p>
+                            <div class="reporte-links">
+                                <a href="/negocio/reportes/productos-vendidos" class="btn btn-sm btn-primary">Más Vendidos</a>
+                                <a href="/negocio/reportes/stock-bajo" class="btn btn-sm">Stock Bajo</a>
+                                <a href="/negocio/reportes/inventario-completo" class="btn btn-sm">Inventario</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="reporte-card">
+                        <div class="reporte-icon">💰</div>
+                        <div class="reporte-content">
+                            <h3>Reportes Financieros</h3>
+                            <p>Ingresos, ganancias y análisis financiero del negocio</p>
+                            <div class="reporte-links">
+                                <a href="/negocio/reportes/ingresos" class="btn btn-sm">Ingresos</a>
+                                <a href="/negocio/reportes/ganancias" class="btn btn-sm">Ganancias</a>
+                                <a href="/negocio/reportes/comparativas" class="btn btn-sm">Comparativas</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="reporte-card">
+                        <div class="reporte-icon">📊</div>
+                        <div class="reporte-content">
+                            <h3>Estadísticas Generales</h3>
+                            <p>Métricas generales del rendimiento del negocio</p>
+                            <div class="reporte-links">
+                                <a href="/negocio/reportes/dashboard" class="btn btn-sm">Dashboard</a>
+                                <a href="/negocio/reportes/tendencias" class="btn btn-sm">Tendencias</a>
+                                <a href="/negocio/reportes/kpis" class="btn btn-sm">KPIs</a>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
-                <p>Funcionalidad de reportes en desarrollo...</p>
+                <!-- Estadísticas rápidas -->
+                <div class="estadisticas-rapidas">
+                    <h3>📈 Estadísticas Rápidas (Últimos 30 días)</h3>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <h4>Total Ventas</h4>
+                            <div class="stat-number">{{ productos_top|length if productos_top else 0 }}</div>
+                            <p>productos vendidos</p>
+                        </div>
+                        <div class="stat-card">
+                            <h4>Productos con Stock Bajo</h4>
+                            <div class="stat-number">{{ stock_bajo|length if stock_bajo else 0 }}</div>
+                            <p>requieren atención</p>
+                        </div>
+                        <div class="stat-card">
+                            <h4>Días con Ventas</h4>
+                            <div class="stat-number">{{ ventas_por_dia|length if ventas_por_dia else 0 }}</div>
+                            <p>en el período</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Acciones de exportación -->
+                <div class="export-section">
+                    <h3>📤 Exportar Datos</h3>
+                    <div class="export-buttons">
+                        <a href="/negocio/reportes/export/ventas" class="btn btn-secondary">
+                            <span class="export-icon">📄</span>
+                            Exportar Ventas (Excel)
+                        </a>
+                        <a href="/negocio/reportes/export/inventario" class="btn btn-secondary">
+                            <span class="export-icon">📦</span>
+                            Exportar Inventario (Excel)
+                        </a>
+                        <a href="/negocio/reportes/export/completo" class="btn btn-secondary">
+                            <span class="export-icon">📊</span>
+                            Reporte Completo (PDF)
+                        </a>
+                    </div>
+                </div>
             </div>
         </main>
     </div>

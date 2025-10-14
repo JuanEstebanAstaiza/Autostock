@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Autostock - Admin - Inventario Completo</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .inventario-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+            text-align: center;
+            border-top: 4px solid #4ECDC4;
+            transition: transform 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+        }
+
+        .stat-card.total {
+            border-top-color: #4ECDC4;
+        }
+
+        .stat-card.valor {
+            border-top-color: #F6AE2D;
+        }
+
+        .stat-card.stock-bajo {
+            border-top-color: #FFC107;
+        }
+
+        .stat-card.agotado {
+            border-top-color: #DC3545;
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #1A2238;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 1rem;
+            font-weight: 500;
+        }
+
+        .stat-subtitle {
+            color: #888;
+            font-size: 0.9rem;
+            margin-top: 0.25rem;
+        }
+
+        .inventario-section {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+
+        .inventario-section h3 {
+            margin-bottom: 1.5rem;
+            color: #1A2238;
+            border-bottom: 2px solid #4ECDC4;
+            padding-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .productos-table-container {
+            overflow-x: auto;
+            margin-bottom: 2rem;
+        }
+
+        .productos-table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 800px;
+        }
+
+        .productos-table th,
+        .productos-table td {
+            padding: 1rem 1.25rem;
+            text-align: left;
+            border-bottom: 1px solid #E0E3E7;
+        }
+
+        .productos-table th {
+            background-color: #1A2238;
+            color: white;
+            font-weight: 600;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .productos-table tbody tr:hover {
+            background-color: rgba(26, 34, 56, 0.04);
+        }
+
+        .stock-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            text-align: center;
+            min-width: 80px;
+        }
+
+        .stock-normal {
+            background: #D4EDDA;
+            color: #155724;
+        }
+
+        .stock-bajo {
+            background: #FFF3CD;
+            color: #856404;
+        }
+
+        .stock-agotado {
+            background: #F8D7DA;
+            color: #721C24;
+        }
+
+        .categorias-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .categoria-card {
+            background: #F8F9FA;
+            border-radius: 8px;
+            padding: 1.5rem;
+            border-left: 4px solid #4ECDC4;
+        }
+
+        .categoria-card h4 {
+            margin: 0 0 1rem 0;
+            color: #1A2238;
+            font-size: 1.1rem;
+        }
+
+        .categoria-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+        }
+
+        .categoria-stat {
+            text-align: center;
+        }
+
+        .categoria-stat .value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #3AB795;
+            display: block;
+        }
+
+        .categoria-stat .label {
+            font-size: 0.8rem;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .top-valor-section {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+        }
+
+        .top-valor-section h3 {
+            margin-bottom: 1.5rem;
+            color: #1A2238;
+            border-bottom: 2px solid #F6AE2D;
+            padding-bottom: 0.5rem;
+        }
+
+        .top-productos-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .top-producto-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            background: linear-gradient(90deg, #FFF8E1 0%, #FFF 100%);
+            border-radius: 8px;
+            border-left: 4px solid #F6AE2D;
+            transition: transform 0.3s ease;
+        }
+
+        .top-producto-item:hover {
+            transform: translateX(4px);
+        }
+
+        .top-producto-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .top-rank {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #F6AE2D, #3AB795);
+            color: white;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
+        .top-producto-details h4 {
+            margin: 0 0 0.25rem 0;
+            color: #1A2238;
+            font-size: 1rem;
+        }
+
+        .top-producto-details .meta {
+            color: #666;
+            font-size: 0.85rem;
+        }
+
+        .top-producto-valor {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #F6AE2D;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .inventario-stats {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+
+            .stat-card {
+                padding: 1.5rem;
+            }
+
+            .stat-value {
+                font-size: 2rem;
+            }
+
+            .inventario-section {
+                padding: 1.5rem;
+            }
+
+            .productos-table th,
+            .productos-table td {
+                padding: 0.75rem 0.5rem;
+                font-size: 0.85rem;
+            }
+
+            .categorias-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .top-producto-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.75rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .productos-table-container {
+                font-size: 0.8rem;
+            }
+
+            .productos-table {
+                min-width: 600px;
+            }
+        }
+    </style>
+</head>
+<body class="admin-dashboard">
+    <div class="dashboard-container">
+        <!-- Header -->
+        <header class="dashboard-header admin-header">
+            <div class="header-content">
+                <h1>Autostock - Inventario Completo</h1>
+                <div class="user-info">
+                    <a href="/negocio/reportes" class="btn btn-secondary">← Centro de Reportes</a>
+                    <form action="/logout" method="post" style="display: inline;">
+                        <button type="submit" class="btn btn-secondary">Cerrar Sesión</button>
+                    </form>
+                </div>
+            </div>
+        </header>
+
+        <!-- Navigation -->
+        <nav class="dashboard-nav">
+            <a href="/negocio/dashboard" class="nav-link">Dashboard</a>
+            <a href="/negocio/inventario" class="nav-link">Inventario</a>
+            <a href="/negocio/ventas" class="nav-link">Ventas</a>
+            <a href="/negocio/usuarios" class="nav-link">Usuarios</a>
+            <a href="/negocio/reportes" class="nav-link active">Reportes</a>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="dashboard-main">
+            <div class="content-section">
+                <h2>📦 Reporte Completo de Inventario</h2>
+                <p>Análisis detallado de tu inventario con estadísticas completas</p>
+
+                <!-- Estadísticas principales -->
+                <div class="inventario-stats">
+                    <div class="stat-card total">
+                        <div class="stat-value">{{ total_productos }}</div>
+                        <div class="stat-label">Total Productos</div>
+                        <div class="stat-subtitle">en inventario</div>
+                    </div>
+
+                    <div class="stat-card valor">
+                        <div class="stat-value">${{ "%.0f"|format(valor_total_inventario) }}</div>
+                        <div class="stat-label">Valor Total</div>
+                        <div class="stat-subtitle">del inventario</div>
+                    </div>
+
+                    <div class="stat-card stock-bajo">
+                        <div class="stat-value">{{ stock_bajo|length }}</div>
+                        <div class="stat-label">Stock Bajo</div>
+                        <div class="stat-subtitle">≤ 10 unidades</div>
+                    </div>
+
+                    <div class="stat-card agotado">
+                        <div class="stat-value">{{ agotados|length }}</div>
+                        <div class="stat-label">Agotados</div>
+                        <div class="stat-subtitle">sin stock</div>
+                    </div>
+                </div>
+
+                <!-- Tabla completa de productos -->
+                <div class="inventario-section">
+                    <h3>📋 Todos los Productos</h3>
+                    <div class="productos-table-container">
+                        <table class="productos-table data-table">
+                            <thead>
+                                <tr>
+                                    <th style="width: 8%;">Código</th>
+                                    <th style="width: 25%;">Nombre</th>
+                                    <th style="width: 15%;">Categoría</th>
+                                    <th style="width: 12%;">Precio</th>
+                                    <th style="width: 10%;">Stock</th>
+                                    <th style="width: 15%;">Proveedor</th>
+                                    <th style="width: 15%;">Valor Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for producto in productos %}
+                                <tr>
+                                    <td><strong>{{ producto.codigo }}</strong></td>
+                                    <td>{{ producto.nombre }}</td>
+                                    <td>{{ producto.categoria or 'Sin categoría' }}</td>
+                                    <td>${{ "%.0f"|format(producto.precio) }}</td>
+                                    <td>
+                                        <span class="stock-badge {% if producto.cantidad == 0 %}stock-agotado{% elif producto.cantidad <= 10 %}stock-bajo{% else %}stock-normal{% endif %}">
+                                            {{ producto.cantidad }}
+                                        </span>
+                                    </td>
+                                    <td>{{ producto.proveedor or 'N/A' }}</td>
+                                    <td><strong>${{ "%.0f"|format(producto.precio * producto.cantidad) }}</strong></td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Estadísticas por categoría -->
+                {% if categorias_stats %}
+                <div class="inventario-section">
+                    <h3>🏷️ Análisis por Categorías</h3>
+                    <div class="categorias-grid">
+                        {% for cat in categorias_stats %}
+                        <div class="categoria-card">
+                            <h4>{{ cat.categoria }}</h4>
+                            <div class="categoria-stats">
+                                <div class="categoria-stat">
+                                    <span class="value">{{ cat.total_productos }}</span>
+                                    <span class="label">productos</span>
+                                </div>
+                                <div class="categoria-stat">
+                                    <span class="value">${{ "%.0f"|format(cat.valor_total) }}</span>
+                                    <span class="label">valor</span>
+                                </div>
+                                <div class="categoria-stat">
+                                    <span class="value">{{ cat.stock_bajo }}</span>
+                                    <span class="label">stock bajo</span>
+                                </div>
+                                <div class="categoria-stat">
+                                    <span class="value">{{ cat.agotados }}</span>
+                                    <span class="label">agotados</span>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Top productos por valor -->
+                {% if productos_por_valor %}
+                <div class="top-valor-section">
+                    <h3>💰 Top 10 Productos por Valor en Inventario</h3>
+                    <div class="top-productos-list">
+                        {% for producto in productos_por_valor %}
+                        <div class="top-producto-item">
+                            <div class="top-producto-info">
+                                <div class="top-rank">{{ loop.index }}</div>
+                                <div class="top-producto-details">
+                                    <h4>{{ producto.nombre }}</h4>
+                                    <div class="meta">
+                                        Código: {{ producto.codigo }} •
+                                        Stock: {{ producto.cantidad }} unidades •
+                                        Precio: ${{ "%.0f"|format(producto.precio) }}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="top-producto-valor">
+                                ${{ "%.0f"|format(producto.precio * producto.cantidad) }}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </main>
+    </div>
+
+    <script src="/static/js/main.js"></script>
+    <script>
+        // Animación de carga
+        document.addEventListener('DOMContentLoaded', function() {
+            // Animar tarjetas de estadísticas
+            const statCards = document.querySelectorAll('.stat-card');
+            statCards.forEach((card, index) => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+                card.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
+
+                setTimeout(() => {
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, index * 100);
+            });
+
+            // Animar categorías
+            const categoriaCards = document.querySelectorAll('.categoria-card');
+            categoriaCards.forEach((card, index) => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+                card.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
+
+                setTimeout(() => {
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, 400 + index * 100);
+            });
+
+            // Animar top productos
+            const topItems = document.querySelectorAll('.top-producto-item');
+            topItems.forEach((item, index) => {
+                item.style.opacity = '0';
+                item.style.transform = 'translateX(-20px)';
+                item.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
+
+                setTimeout(() => {
+                    item.style.opacity = '1';
+                    item.style.transform = 'translateX(0)';
+                }, 600 + index * 100);
+            });
+        });
+    </script>
+</body>
+</html>

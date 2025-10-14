@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Autostock - Admin - Ventas por Período</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .periodo-selector {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+
+        .periodo-selector h3 {
+            margin-bottom: 1.5rem;
+            color: #1A2238;
+        }
+
+        .periodo-buttons {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .periodo-btn {
+            padding: 0.75rem 1.5rem;
+            border: 2px solid #E0E3E7;
+            background: white;
+            border-radius: 8px;
+            text-decoration: none;
+            color: #1A2238;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .periodo-btn:hover,
+        .periodo-btn.active {
+            border-color: #3AB795;
+            background: #3AB795;
+            color: white;
+        }
+
+        .estadisticas-periodo {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .estadistica-card {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+            text-align: center;
+            border-top: 4px solid #3AB795;
+        }
+
+        .estadistica-card h3 {
+            margin: 0 0 1rem 0;
+            color: #666;
+            font-size: 1rem;
+            font-weight: 500;
+        }
+
+        .estadistica-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #1A2238;
+            margin-bottom: 0.5rem;
+        }
+
+        .estadistica-label {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .chart-container {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+
+        .chart-container h3 {
+            margin-bottom: 1.5rem;
+            color: #1A2238;
+            border-bottom: 2px solid #3AB795;
+            padding-bottom: 0.5rem;
+        }
+
+        .chart-wrapper {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            height: 300px;
+            margin: 0 auto;
+            overflow: hidden;
+        }
+
+        #ventasChart {
+            max-width: 100% !important;
+            height: 100% !important;
+        }
+
+        .ventas-table-container {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+            overflow-x: auto;
+        }
+
+        .ventas-table-container h3 {
+            margin-bottom: 1.5rem;
+            color: #1A2238;
+            border-bottom: 2px solid #3AB795;
+            padding-bottom: 0.5rem;
+        }
+
+        .ventas-table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 600px;
+        }
+
+        .ventas-table th,
+        .ventas-table td {
+            padding: 1rem 1.25rem;
+            text-align: left;
+            border-bottom: 1px solid #E0E3E7;
+        }
+
+        .ventas-table th {
+            background-color: #1A2238;
+            color: white;
+            font-weight: 600;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .ventas-table tbody tr:hover {
+            background-color: rgba(26, 34, 56, 0.04);
+        }
+
+        .fecha-cell {
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+        }
+
+        .producto-cell {
+            font-weight: 500;
+        }
+
+        .total-cell {
+            text-align: right;
+            font-weight: bold;
+            color: #3AB795;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .periodo-selector {
+                padding: 1.5rem;
+            }
+
+            .periodo-buttons {
+                justify-content: center;
+            }
+
+            .estadisticas-periodo {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+
+            .estadistica-card {
+                padding: 1.5rem;
+            }
+
+            .chart-container,
+            .ventas-table-container {
+                padding: 1rem;
+            }
+
+            .chart-wrapper {
+                height: 250px;
+            }
+
+            .ventas-table th,
+            .ventas-table td {
+                padding: 0.75rem 0.5rem;
+                font-size: 0.85rem;
+                white-space: nowrap;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .chart-wrapper {
+                height: 200px;
+            }
+
+            .estadistica-number {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body class="admin-dashboard">
+    <div class="dashboard-container">
+        <!-- Header -->
+        <header class="dashboard-header admin-header">
+            <div class="header-content">
+                <h1>Autostock - Ventas por Período</h1>
+                <div class="user-info">
+                    <a href="/negocio/reportes" class="btn btn-secondary">← Volver a Reportes</a>
+                    <form action="/logout" method="post" style="display: inline;">
+                        <button type="submit" class="btn btn-secondary">Cerrar Sesión</button>
+                    </form>
+                </div>
+            </div>
+        </header>
+
+        <!-- Navigation -->
+        <nav class="dashboard-nav">
+            <a href="/negocio/dashboard" class="nav-link">Dashboard</a>
+            <a href="/negocio/inventario" class="nav-link">Inventario</a>
+            <a href="/negocio/ventas" class="nav-link">Ventas</a>
+            <a href="/negocio/usuarios" class="nav-link">Usuarios</a>
+            <a href="/negocio/reportes" class="nav-link active">Reportes</a>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="dashboard-main">
+            <div class="content-section">
+                <h2>📊 Ventas por Período</h2>
+                <p>Análisis de ventas por diferentes períodos de tiempo</p>
+
+                <!-- Selector de período -->
+                <div class="periodo-selector">
+                    <h3>Seleccionar Período</h3>
+                    <div class="periodo-buttons">
+                        <a href="/negocio/reportes/ventas-periodo?periodo=dia" class="periodo-btn{% if periodo == 'dia' %} active{% endif %}">📅 Hoy</a>
+                        <a href="/negocio/reportes/ventas-periodo?periodo=semana" class="periodo-btn{% if periodo == 'semana' %} active{% endif %}">📊 Semana</a>
+                        <a href="/negocio/reportes/ventas-periodo?periodo=mes" class="periodo-btn{% if periodo == 'mes' %} active{% endif %}">📈 Mes</a>
+                        <a href="/negocio/reportes/ventas-periodo?periodo=trimestre" class="periodo-btn{% if periodo == 'trimestre' %} active{% endif %}">📊 Trimestre</a>
+                    </div>
+                </div>
+
+                <!-- Estadísticas del período -->
+                <div class="estadisticas-periodo">
+                    <div class="estadistica-card">
+                        <h3>{{ periodo_texto }}</h3>
+                        <div class="estadistica-number">{{ total_ventas }}</div>
+                        <div class="estadistica-label">ventas realizadas</div>
+                    </div>
+                    <div class="estadistica-card">
+                        <h3>Ingresos Totales</h3>
+                        <div class="estadistica-number">${{ "%.0f"|format(total_ingresos) }}</div>
+                        <div class="estadistica-label">en {{ periodo_texto.lower() }}</div>
+                    </div>
+                </div>
+
+                <!-- Gráfico de ventas por día -->
+                <div class="chart-container">
+                    <h3>📈 Tendencia de Ventas - {{ periodo_texto }}</h3>
+                    <div class="chart-wrapper">
+                        <canvas id="ventasChart" width="800" height="300"></canvas>
+                    </div>
+                </div>
+
+                <!-- Tabla de ventas del período -->
+                <div class="ventas-table-container">
+                    <h3>📋 Ventas de {{ periodo_texto }}</h3>
+                    <div class="table-container">
+                        <table class="ventas-table data-table">
+                            <thead>
+                                <tr>
+                                    <th style="width: 25%;">Fecha y Hora</th>
+                                    <th style="width: 40%;">Producto</th>
+                                    <th style="width: 15%;">Cantidad</th>
+                                    <th style="width: 20%;">Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for venta in ventas %}
+                                <tr>
+                                    <td class="fecha-cell">
+                                        {{ venta.fecha_venta.strftime('%d/%m/%Y') }}<br>
+                                        <small>{{ venta.fecha_venta.strftime('%H:%M') }}</small>
+                                    </td>
+                                    <td class="producto-cell">{{ venta.producto.nombre }}</td>
+                                    <td style="text-align: center;">{{ venta.cantidad_vendida }}</td>
+                                    <td class="total-cell">${{ "%.0f"|format(venta.valor_total) }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="/static/js/main.js"></script>
+    <script>
+        // Datos para el gráfico
+        const ventasData = {{ ventas_por_dia|tojson }};
+
+        // Preparar datos para Chart.js
+        const labels = ventasData.map(item => {
+            const fecha = new Date(item.fecha);
+            return fecha.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' });
+        });
+
+        const valores = ventasData.map(item => parseFloat(item.total));
+        const cantidades = ventasData.map(item => parseInt(item.cantidad));
+
+        // Configurar el gráfico
+        const ctx = document.getElementById('ventasChart').getContext('2d');
+        const chart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Ingresos ($)',
+                    data: valores,
+                    borderColor: '#3AB795',
+                    backgroundColor: 'rgba(58, 183, 149, 0.1)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4,
+                    yAxisID: 'y'
+                }, {
+                    label: 'Cantidad de Ventas',
+                    data: cantidades,
+                    borderColor: '#F6AE2D',
+                    backgroundColor: 'rgba(246, 174, 45, 0.1)',
+                    borderWidth: 2,
+                    fill: true,
+                    tension: 0.4,
+                    yAxisID: 'y1'
+                }]
+            },
+            options: {
+                responsive: false,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                        labels: {
+                            boxWidth: 12,
+                            font: {
+                                size: 12
+                            }
+                        }
+                    },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false,
+                        backgroundColor: 'rgba(0,0,0,0.8)',
+                        titleColor: '#fff',
+                        bodyColor: '#fff',
+                        borderColor: '#3AB795',
+                        borderWidth: 1
+                    }
+                },
+                scales: {
+                    x: {
+                        display: true,
+                        title: {
+                            display: true,
+                            text: 'Fecha',
+                            font: {
+                                size: 14
+                            }
+                        },
+                        ticks: {
+                            maxTicksLimit: 10,
+                            font: {
+                                size: 11
+                            }
+                        }
+                    },
+                    y: {
+                        type: 'linear',
+                        display: true,
+                        position: 'left',
+                        title: {
+                            display: true,
+                            text: 'Ingresos ($)',
+                            font: {
+                                size: 14
+                            }
+                        },
+                        ticks: {
+                            callback: function(value) {
+                                return '$' + Math.round(value);
+                            },
+                            font: {
+                                size: 11
+                            }
+                        },
+                        grid: {
+                            color: 'rgba(0,0,0,0.1)'
+                        }
+                    },
+                    y1: {
+                        type: 'linear',
+                        display: true,
+                        position: 'right',
+                        title: {
+                            display: true,
+                            text: 'Cantidad de Ventas',
+                            font: {
+                                size: 14
+                            }
+                        },
+                        ticks: {
+                            font: {
+                                size: 11
+                            }
+                        },
+                        grid: {
+                            drawOnChartArea: false,
+                            color: 'rgba(246, 174, 45, 0.3)'
+                        },
+                    }
+                },
+                interaction: {
+                    mode: 'index',
+                    intersect: false,
+                },
+                elements: {
+                    point: {
+                        radius: 4,
+                        hoverRadius: 6
+                    },
+                    line: {
+                        borderWidth: 2
+                    }
+                }
+            }
+        });
+
+        // Animación de carga
+        document.addEventListener('DOMContentLoaded', function() {
+            // Fijar tamaño del gráfico
+            const canvas = document.getElementById('ventasChart');
+            const wrapper = document.querySelector('.chart-wrapper');
+
+            if (canvas && wrapper) {
+                canvas.style.width = '800px';
+                canvas.style.height = '300px';
+                canvas.width = 800;
+                canvas.height = 300;
+            }
+
+            // Animar elementos
+            const chartContainer = document.querySelector('.chart-container');
+            const tableContainer = document.querySelector('.ventas-table-container');
+
+            [chartContainer, tableContainer].forEach(container => {
+                container.style.opacity = '0';
+                container.style.transform = 'translateY(20px)';
+                container.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+            });
+
+            setTimeout(() => {
+                chartContainer.style.opacity = '1';
+                chartContainer.style.transform = 'translateY(0)';
+            }, 100);
+
+            setTimeout(() => {
+                tableContainer.style.opacity = '1';
+                tableContainer.style.transform = 'translateY(0)';
+            }, 300);
+        });
+
+        // Manejar redimensionamiento para móviles
+        window.addEventListener('resize', function() {
+            if (window.innerWidth <= 480) {
+                const wrapper = document.querySelector('.chart-wrapper');
+                if (wrapper) {
+                    wrapper.style.height = '200px';
+                    const canvas = document.getElementById('ventasChart');
+                    if (canvas) {
+                        canvas.style.height = '200px';
+                        canvas.height = 200;
+                    }
+                }
+            } else if (window.innerWidth <= 768) {
+                const wrapper = document.querySelector('.chart-wrapper');
+                if (wrapper) {
+                    wrapper.style.height = '250px';
+                    const canvas = document.getElementById('ventasChart');
+                    if (canvas) {
+                        canvas.style.height = '250px';
+                        canvas.height = 250;
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>

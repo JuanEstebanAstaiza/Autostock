@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Autostock - Admin - Dashboard de Reportes</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .kpi-card {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+            text-align: center;
+            border-top: 4px solid #3AB795;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .kpi-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+        }
+
+        .kpi-card.ventas {
+            border-top-color: #3AB795;
+        }
+
+        .kpi-card.ingresos {
+            border-top-color: #F6AE2D;
+        }
+
+        .kpi-card.productos {
+            border-top-color: #FF6B6B;
+        }
+
+        .kpi-card.inventario {
+            border-top-color: #4ECDC4;
+        }
+
+        .kpi-card.equipo {
+            border-top-color: #9B59B6;
+        }
+
+        .kpi-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #1A2238;
+            margin-bottom: 0.5rem;
+        }
+
+        .kpi-label {
+            color: #666;
+            font-size: 1rem;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+
+        .kpi-subtitle {
+            color: #888;
+            font-size: 0.9rem;
+        }
+
+        .charts-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .chart-card {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+        }
+
+        .chart-card h3 {
+            margin-bottom: 1.5rem;
+            color: #1A2238;
+            border-bottom: 2px solid #3AB795;
+            padding-bottom: 0.5rem;
+        }
+
+        .chart-wrapper {
+            position: relative;
+            width: 100%;
+            height: 300px;
+            margin: 0 auto;
+        }
+
+        #tendenciaChart, #productosChart {
+            max-width: 100% !important;
+            height: 100% !important;
+        }
+
+        .top-productos-section {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+        }
+
+        .top-productos-section h3 {
+            margin-bottom: 1.5rem;
+            color: #1A2238;
+            border-bottom: 2px solid #3AB795;
+            padding-bottom: 0.5rem;
+        }
+
+        .productos-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .producto-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            background: #F8F9FA;
+            border-radius: 8px;
+            transition: background-color 0.3s ease;
+        }
+
+        .producto-item:hover {
+            background: #E9ECEF;
+        }
+
+        .producto-info h4 {
+            margin: 0 0 0.25rem 0;
+            color: #1A2238;
+            font-size: 1rem;
+        }
+
+        .producto-stats {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .producto-total {
+            font-weight: bold;
+            color: #3AB795;
+            font-size: 1.1rem;
+        }
+
+        .rank-badge {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #3AB795, #F6AE2D);
+            color: white;
+            font-weight: bold;
+            font-size: 0.9rem;
+            margin-right: 1rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .charts-section {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .kpi-grid {
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                gap: 1rem;
+            }
+
+            .kpi-card {
+                padding: 1.5rem;
+            }
+
+            .kpi-value {
+                font-size: 2rem;
+            }
+
+            .chart-card {
+                padding: 1.5rem;
+            }
+
+            .chart-wrapper {
+                height: 250px;
+            }
+
+            .top-productos-section {
+                padding: 1.5rem;
+            }
+
+            .producto-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.5rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .kpi-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .charts-section {
+                gap: 1rem;
+            }
+
+            .chart-wrapper {
+                height: 200px;
+            }
+        }
+    </style>
+</head>
+<body class="admin-dashboard">
+    <div class="dashboard-container">
+        <!-- Header -->
+        <header class="dashboard-header admin-header">
+            <div class="header-content">
+                <h1>Autostock - Dashboard de Reportes</h1>
+                <div class="user-info">
+                    <a href="/negocio/reportes" class="btn btn-secondary">← Centro de Reportes</a>
+                    <form action="/logout" method="post" style="display: inline;">
+                        <button type="submit" class="btn btn-secondary">Cerrar Sesión</button>
+                    </form>
+                </div>
+            </div>
+        </header>
+
+        <!-- Navigation -->
+        <nav class="dashboard-nav">
+            <a href="/negocio/dashboard" class="nav-link">Dashboard</a>
+            <a href="/negocio/inventario" class="nav-link">Inventario</a>
+            <a href="/negocio/ventas" class="nav-link">Ventas</a>
+            <a href="/negocio/usuarios" class="nav-link">Usuarios</a>
+            <a href="/negocio/reportes" class="nav-link active">Reportes</a>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="dashboard-main">
+            <div class="content-section">
+                <h2>📊 Dashboard de Métricas - Último Mes</h2>
+
+                <!-- KPIs Principales -->
+                <div class="kpi-grid">
+                    <div class="kpi-card ventas">
+                        <div class="kpi-value">{{ ventas_mes }}</div>
+                        <div class="kpi-label">Ventas Realizadas</div>
+                        <div class="kpi-subtitle">último mes</div>
+                    </div>
+
+                    <div class="kpi-card ingresos">
+                        <div class="kpi-value">${{ "%.0f"|format(ingresos_mes) }}</div>
+                        <div class="kpi-label">Ingresos Totales</div>
+                        <div class="kpi-subtitle">último mes</div>
+                    </div>
+
+                    <div class="kpi-card productos">
+                        <div class="kpi-value">{{ productos_vendidos_mes }}</div>
+                        <div class="kpi-label">Productos Vendidos</div>
+                        <div class="kpi-subtitle">unidades</div>
+                    </div>
+
+                    <div class="kpi-card inventario">
+                        <div class="kpi-value">{{ stock_bajo_count }}</div>
+                        <div class="kpi-label">Stock Bajo</div>
+                        <div class="kpi-subtitle">productos ≤ 10 unidades</div>
+                    </div>
+
+                    <div class="kpi-card inventario">
+                        <div class="kpi-value">{{ agotados_count }}</div>
+                        <div class="kpi-label">Productos Agotados</div>
+                        <div class="kpi-subtitle">sin stock disponible</div>
+                    </div>
+
+                    <div class="kpi-card equipo">
+                        <div class="kpi-value">{{ vendedores_activos }}</div>
+                        <div class="kpi-label">Vendedores Activos</div>
+                        <div class="kpi-subtitle">equipo de ventas</div>
+                    </div>
+                </div>
+
+                <!-- Gráficos -->
+                <div class="charts-section">
+                    <div class="chart-card">
+                        <h3>📈 Tendencia Semanal</h3>
+                        <div class="chart-wrapper">
+                            <canvas id="tendenciaChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="top-productos-section">
+                        <h3>🏆 Top 5 Productos</h3>
+                        <div class="productos-list">
+                            {% for producto in top_productos %}
+                            <div class="producto-item">
+                                <div style="display: flex; align-items: center;">
+                                    <div class="rank-badge">{{ loop.index }}</div>
+                                    <div class="producto-info">
+                                        <h4>{{ producto.nombre }}</h4>
+                                        <div class="producto-stats">{{ producto.cantidad }} unidades vendidas</div>
+                                    </div>
+                                </div>
+                                <div class="producto-total">${{ "%.0f"|format(producto.total) }}</div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="/static/js/main.js"></script>
+    <script>
+        // Datos para el gráfico de tendencia semanal
+        const semanasData = {{ semanas|tojson }};
+
+        // Configurar gráfico de tendencia semanal
+        const ctx = document.getElementById('tendenciaChart').getContext('2d');
+        const tendenciaChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: semanasData.map(item => item.semana),
+                datasets: [{
+                    label: 'Ingresos ($)',
+                    data: semanasData.map(item => item.ingresos),
+                    backgroundColor: 'rgba(58, 183, 149, 0.8)',
+                    borderColor: '#3AB795',
+                    borderWidth: 2,
+                    borderRadius: 4,
+                    borderSkipped: false,
+                }]
+            },
+            options: {
+                responsive: false,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0,0,0,0.8)',
+                        titleColor: '#fff',
+                        bodyColor: '#fff',
+                        borderColor: '#3AB795',
+                        borderWidth: 1,
+                        callbacks: {
+                            label: function(context) {
+                                return '$' + context.parsed.y.toLocaleString();
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return '$' + value.toLocaleString();
+                            },
+                            font: {
+                                size: 11
+                            }
+                        },
+                        grid: {
+                            color: 'rgba(0,0,0,0.1)'
+                        }
+                    },
+                    x: {
+                        ticks: {
+                            font: {
+                                size: 11
+                            }
+                        },
+                        grid: {
+                            display: false
+                        }
+                    }
+                },
+                elements: {
+                    bar: {
+                        borderRadius: 4
+                    }
+                }
+            }
+        });
+
+        // Animación de carga
+        document.addEventListener('DOMContentLoaded', function() {
+            // Fijar tamaño del gráfico
+            const canvas = document.getElementById('tendenciaChart');
+            const wrapper = document.querySelector('.chart-wrapper');
+
+            if (canvas && wrapper) {
+                canvas.style.width = '100%';
+                canvas.style.height = '300px';
+                canvas.width = wrapper.offsetWidth;
+                canvas.height = 300;
+            }
+
+            // Animar elementos
+            const kpiCards = document.querySelectorAll('.kpi-card');
+            kpiCards.forEach((card, index) => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+                card.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
+
+                setTimeout(() => {
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, index * 100);
+            });
+
+            // Animar productos
+            const productoItems = document.querySelectorAll('.producto-item');
+            productoItems.forEach((item, index) => {
+                item.style.opacity = '0';
+                item.style.transform = 'translateX(-20px)';
+                item.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
+
+                setTimeout(() => {
+                    item.style.opacity = '1';
+                    item.style.transform = 'translateX(0)';
+                }, 500 + index * 100);
+            });
+        });
+    </script>
+</body>
+</html>

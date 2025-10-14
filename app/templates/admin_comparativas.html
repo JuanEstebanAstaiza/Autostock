@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Autostock - Admin - Comparativas</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .periodo-selector {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+            margin-bottom: 3rem;
+        }
+
+        .periodo-selector h3 {
+            margin-bottom: 1.5rem;
+            color: #1A2238;
+            border-bottom: 2px solid #6C757D;
+            padding-bottom: 0.5rem;
+        }
+
+        .selector-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .periodo-group {
+            background: #F8F9FA;
+            padding: 1.5rem;
+            border-radius: 8px;
+            border-left: 4px solid #6C757D;
+        }
+
+        .periodo-group h4 {
+            margin: 0 0 1rem 0;
+            color: #1A2238;
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        .periodo-options {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .periodo-option {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .periodo-option input[type="radio"] {
+            margin: 0;
+        }
+
+        .periodo-option label {
+            margin: 0;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        .btn-compare {
+            background: #007BFF;
+            color: white;
+            border: none;
+            padding: 0.75rem 2rem;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            width: 100%;
+            max-width: 200px;
+        }
+
+        .btn-compare:hover {
+            background: #0056B3;
+        }
+
+        .comparison-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .comparison-card {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .comparison-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #007BFF, #28A745);
+        }
+
+        .comparison-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .period-label {
+            background: #007BFF;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .metric-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            background: #F8F9FA;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+
+        .metric-label {
+            font-weight: 600;
+            color: #1A2238;
+        }
+
+        .metric-value {
+            font-size: 1.25rem;
+            font-weight: bold;
+            color: #007BFF;
+        }
+
+        .difference-section {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+            margin-bottom: 3rem;
+        }
+
+        .difference-section h3 {
+            margin-bottom: 1.5rem;
+            color: #1A2238;
+            border-bottom: 2px solid #6C757D;
+            padding-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .differences-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+        }
+
+        .difference-card {
+            background: #F8F9FA;
+            border-radius: 8px;
+            padding: 1.5rem;
+            text-align: center;
+            border-left: 4px solid #6C757D;
+        }
+
+        .difference-card.positive {
+            border-left-color: #28A745;
+            background: #D4EDDA;
+        }
+
+        .difference-card.negative {
+            border-left-color: #DC3545;
+            background: #F8D7DA;
+        }
+
+        .difference-value {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .difference-card.positive .difference-value {
+            color: #155724;
+        }
+
+        .difference-card.negative .difference-value {
+            color: #721C24;
+        }
+
+        .difference-percentage {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .difference-card.positive .difference-percentage {
+            color: #155724;
+        }
+
+        .difference-card.negative .difference-percentage {
+            color: #721C24;
+        }
+
+        .difference-label {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .top-products-comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .top-products-section {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+        }
+
+        .top-products-section h3 {
+            margin-bottom: 1.5rem;
+            color: #1A2238;
+            border-bottom: 2px solid #007BFF;
+            padding-bottom: 0.5rem;
+        }
+
+        .top-products-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .top-product-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            background: linear-gradient(90deg, #E3F2FD 0%, #FFF 100%);
+            border-radius: 8px;
+            border-left: 4px solid #007BFF;
+            transition: transform 0.3s ease;
+        }
+
+        .top-product-item:hover {
+            transform: translateX(4px);
+        }
+
+        .top-product-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .top-rank {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #007BFF, #0056B3);
+            color: white;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
+        .top-product-details h4 {
+            margin: 0 0 0.25rem 0;
+            color: #1A2238;
+            font-size: 1rem;
+        }
+
+        .top-product-details .meta {
+            color: #666;
+            font-size: 0.85rem;
+        }
+
+        .top-product-value {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #007BFF;
+            text-align: right;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .top-products-comparison {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .selector-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .comparison-cards {
+                grid-template-columns: 1fr;
+            }
+
+            .differences-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .periodo-selector {
+                padding: 1.5rem;
+            }
+
+            .comparison-card {
+                padding: 1.5rem;
+            }
+
+            .top-products-section {
+                padding: 1.5rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .metric-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.5rem;
+            }
+
+            .metric-value {
+                align-self: flex-end;
+            }
+
+            .top-product-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.75rem;
+            }
+
+            .top-product-value {
+                text-align: left;
+            }
+        }
+    </style>
+</head>
+<body class="admin-dashboard">
+    <div class="dashboard-container">
+        <!-- Header -->
+        <header class="dashboard-header admin-header">
+            <div class="header-content">
+                <h1>Autostock - Comparativas</h1>
+                <div class="user-info">
+                    <a href="/negocio/reportes" class="btn btn-secondary">← Centro de Reportes</a>
+                    <form action="/logout" method="post" style="display: inline;">
+                        <button type="submit" class="btn btn-secondary">Cerrar Sesión</button>
+                    </form>
+                </div>
+            </div>
+        </header>
+
+        <!-- Navigation -->
+        <nav class="dashboard-nav">
+            <a href="/negocio/dashboard" class="nav-link">Dashboard</a>
+            <a href="/negocio/inventario" class="nav-link">Inventario</a>
+            <a href="/negocio/ventas" class="nav-link">Ventas</a>
+            <a href="/negocio/usuarios" class="nav-link">Usuarios</a>
+            <a href="/negocio/reportes" class="nav-link active">Reportes</a>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="dashboard-main">
+            <div class="content-section">
+                <h2>📊 Comparativas de Períodos</h2>
+                <p>Compara métricas entre diferentes períodos de tiempo</p>
+
+                <!-- Selector de períodos -->
+                <div class="periodo-selector">
+                    <h3>Seleccionar Períodos a Comparar</h3>
+                    <form method="GET" action="/negocio/reportes/comparativas">
+                        <div class="selector-grid">
+                            <div class="periodo-group">
+                                <h4>Período 1</h4>
+                                <div class="periodo-options">
+                                    <div class="periodo-option">
+                                        <input type="radio" id="p1-mes-actual" name="periodo1" value="mes-actual" {% if periodo1 == 'mes-actual' %}checked{% endif %}>
+                                        <label for="p1-mes-actual">Mes Actual</label>
+                                    </div>
+                                    <div class="periodo-option">
+                                        <input type="radio" id="p1-mes-anterior" name="periodo1" value="mes-anterior" {% if periodo1 == 'mes-anterior' %}checked{% endif %}>
+                                        <label for="p1-mes-anterior">Mes Anterior</label>
+                                    </div>
+                                    <div class="periodo-option">
+                                        <input type="radio" id="p1-semana-actual" name="periodo1" value="semana-actual" {% if periodo1 == 'semana-actual' %}checked{% endif %}>
+                                        <label for="p1-semana-actual">Semana Actual</label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="periodo-group">
+                                <h4>Período 2</h4>
+                                <div class="periodo-options">
+                                    <div class="periodo-option">
+                                        <input type="radio" id="p2-mes-anterior" name="periodo2" value="mes-anterior" {% if periodo2 == 'mes-anterior' %}checked{% endif %}>
+                                        <label for="p2-mes-anterior">Mes Anterior</label>
+                                    </div>
+                                    <div class="periodo-option">
+                                        <input type="radio" id="p2-semana-actual" name="periodo2" value="semana-actual" {% if periodo2 == 'semana-actual' %}checked{% endif %}>
+                                        <label for="p2-semana-actual">Semana Actual</label>
+                                    </div>
+                                    <div class="periodo-option">
+                                        <input type="radio" id="p2-semana-anterior" name="periodo2" value="semana-anterior" {% if periodo2 == 'semana-anterior' %}checked{% endif %}>
+                                        <label for="p2-semana-anterior">Semana Anterior</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn-compare">Comparar Períodos</button>
+                    </form>
+                </div>
+
+                <!-- Cards de comparación -->
+                <div class="comparison-cards">
+                    <div class="comparison-card">
+                        <div class="comparison-header">
+                            <h3>{{ p1_nombre }}</h3>
+                            <span class="period-label">Período 1</span>
+                        </div>
+                        <div class="metric-item">
+                            <span class="metric-label">Ventas Realizadas</span>
+                            <span class="metric-value">{{ ventas_p1 }}</span>
+                        </div>
+                        <div class="metric-item">
+                            <span class="metric-label">Ingresos Totales</span>
+                            <span class="metric-value">${{ "%.0f"|format(ingresos_p1) }}</span>
+                        </div>
+                        <div class="metric-item">
+                            <span class="metric-label">Productos Vendidos</span>
+                            <span class="metric-value">{{ productos_p1 }}</span>
+                        </div>
+                    </div>
+
+                    <div class="comparison-card">
+                        <div class="comparison-header">
+                            <h3>{{ p2_nombre }}</h3>
+                            <span class="period-label">Período 2</span>
+                        </div>
+                        <div class="metric-item">
+                            <span class="metric-label">Ventas Realizadas</span>
+                            <span class="metric-value">{{ ventas_p2 }}</span>
+                        </div>
+                        <div class="metric-item">
+                            <span class="metric-label">Ingresos Totales</span>
+                            <span class="metric-value">${{ "%.0f"|format(ingresos_p2) }}</span>
+                        </div>
+                        <div class="metric-item">
+                            <span class="metric-label">Productos Vendidos</span>
+                            <span class="metric-value">{{ productos_p2 }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Diferencias -->
+                <div class="difference-section">
+                    <h3>📈 Diferencias y Cambios</h3>
+                    <div class="differences-grid">
+                        <div class="difference-card {% if diff_ventas >= 0 %}positive{% else %}negative{% endif %}">
+                            <div class="difference-value">{{ diff_ventas }}</div>
+                            <div class="difference-percentage">{{ "%.1f"|format(pct_ventas) }}%</div>
+                            <div class="difference-label">Diferencia en Ventas</div>
+                        </div>
+
+                        <div class="difference-card {% if diff_ingresos >= 0 %}positive{% else %}negative{% endif %}">
+                            <div class="difference-value">${{ "%.0f"|format(diff_ingresos) }}</div>
+                            <div class="difference-percentage">{{ "%.1f"|format(pct_ingresos) }}%</div>
+                            <div class="difference-label">Diferencia en Ingresos</div>
+                        </div>
+
+                        <div class="difference-card {% if diff_productos >= 0 %}positive{% else %}negative{% endif %}">
+                            <div class="difference-value">{{ diff_productos }}</div>
+                            <div class="difference-percentage">{{ "%.1f"|format(pct_productos) }}%</div>
+                            <div class="difference-label">Diferencia en Productos</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Top productos comparación -->
+                <div class="top-products-comparison">
+                    <div class="top-products-section">
+                        <h3>🏆 Top Productos - {{ p1_nombre }}</h3>
+                        <div class="top-products-list">
+                            {% for producto in top_p1_data %}
+                            <div class="top-product-item">
+                                <div class="top-product-info">
+                                    <div class="top-rank">{{ loop.index }}</div>
+                                    <div class="top-product-details">
+                                        <h4>{{ producto.nombre }}</h4>
+                                        <div class="meta">{{ producto.cantidad }} unidades vendidas</div>
+                                    </div>
+                                </div>
+                                <div class="top-product-value">${{ "%.0f"|format(producto.total) }}</div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <div class="top-products-section">
+                        <h3>🏆 Top Productos - {{ p2_nombre }}</h3>
+                        <div class="top-products-list">
+                            {% for producto in top_p2_data %}
+                            <div class="top-product-item">
+                                <div class="top-product-info">
+                                    <div class="top-rank">{{ loop.index }}</div>
+                                    <div class="top-product-details">
+                                        <h4>{{ producto.nombre }}</h4>
+                                        <div class="meta">{{ producto.cantidad }} unidades vendidas</div>
+                                    </div>
+                                </div>
+                                <div class="top-product-value">${{ "%.0f"|format(producto.total) }}</div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="/static/js/main.js"></script>
+    <script>
+        // Animación de carga
+        document.addEventListener('DOMContentLoaded', function() {
+            // Animar cards de comparación
+            const comparisonCards = document.querySelectorAll('.comparison-card');
+            comparisonCards.forEach((card, index) => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+                card.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
+
+                setTimeout(() => {
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, index * 100);
+            });
+
+            // Animar cards de diferencias
+            const differenceCards = document.querySelectorAll('.difference-card');
+            differenceCards.forEach((card, index) => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+                card.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
+
+                setTimeout(() => {
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, 400 + index * 100);
+            });
+
+            // Animar secciones de top productos
+            const topSections = document.querySelectorAll('.top-products-section');
+            topSections.forEach((section, index) => {
+                section.style.opacity = '0';
+                section.style.transform = 'translateY(20px)';
+                section.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
+
+                setTimeout(() => {
+                    section.style.opacity = '1';
+                    section.style.transform = 'translateY(0)';
+                }, 600 + index * 200);
+            });
+        });
+    </script>
+</body>
+</html>

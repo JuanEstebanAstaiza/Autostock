@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Autostock - Admin - Stock Bajo</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <style>
+        .alert-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .alert-card {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+            border-left: 4px solid #FFC107;
+        }
+
+        .alert-card.warning {
+            border-left-color: #FFC107;
+        }
+
+        .alert-card.danger {
+            border-left-color: #DC3545;
+        }
+
+        .alert-card.success {
+            border-left-color: #28A745;
+        }
+
+        .alert-card h3 {
+            margin: 0 0 1rem 0;
+            color: #1A2238;
+            font-size: 1.25rem;
+        }
+
+        .alert-number {
+            font-size: 3rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .alert-card.warning .alert-number {
+            color: #FFC107;
+        }
+
+        .alert-card.danger .alert-number {
+            color: #DC3545;
+        }
+
+        .alert-card.success .alert-number {
+            color: #28A745;
+        }
+
+        .alert-description {
+            color: #666;
+            margin-bottom: 1rem;
+        }
+
+        .productos-section {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+
+        .productos-section h3 {
+            margin-bottom: 1.5rem;
+            color: #1A2238;
+            border-bottom: 2px solid #FFC107;
+            padding-bottom: 0.5rem;
+        }
+
+        .productos-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .producto-alert-card {
+            background: #FFF8E1;
+            border: 2px solid #FFE082;
+            border-radius: 8px;
+            padding: 1.5rem;
+            transition: transform 0.3s ease;
+        }
+
+        .producto-alert-card:hover {
+            transform: translateY(-2px);
+        }
+
+        .producto-alert-card.agotado {
+            background: #FFEBEE;
+            border-color: #EF5350;
+        }
+
+        .producto-nombre {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #1A2238;
+            margin-bottom: 0.5rem;
+        }
+
+        .producto-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .stock-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .stock-warning {
+            background: #FFF3CD;
+            color: #856404;
+        }
+
+        .stock-danger {
+            background: #F8D7DA;
+            color: #721C24;
+        }
+
+        .producto-precio {
+            font-weight: 600;
+            color: #3AB795;
+        }
+
+        .producto-acciones {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .producto-acciones .btn {
+            padding: 0.5rem 1rem;
+            font-size: 0.85rem;
+        }
+
+        .acciones-recomendadas {
+            background: #E3F2FD;
+            border-radius: 12px;
+            padding: 2rem;
+            margin-top: 2rem;
+        }
+
+        .acciones-recomendadas h3 {
+            color: #1976D2;
+            margin-bottom: 1rem;
+        }
+
+        .acciones-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+        }
+
+        .accion-item {
+            background: white;
+            padding: 1rem;
+            border-radius: 8px;
+            border-left: 4px solid #2196F3;
+        }
+
+        .accion-item h4 {
+            margin: 0 0 0.5rem 0;
+            color: #1976D2;
+        }
+
+        .accion-item p {
+            margin: 0;
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .alert-section {
+                grid-template-columns: 1fr;
+            }
+
+            .productos-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .acciones-list {
+                grid-template-columns: 1fr;
+            }
+
+            .alert-card {
+                padding: 1.5rem;
+            }
+
+            .productos-section {
+                padding: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body class="admin-dashboard">
+    <div class="dashboard-container">
+        <!-- Header -->
+        <header class="dashboard-header admin-header">
+            <div class="header-content">
+                <h1>Autostock - Stock Bajo</h1>
+                <div class="user-info">
+                    <a href="/negocio/reportes" class="btn btn-secondary">← Volver a Reportes</a>
+                    <form action="/logout" method="post" style="display: inline;">
+                        <button type="submit" class="btn btn-secondary">Cerrar Sesión</button>
+                    </form>
+                </div>
+            </div>
+        </header>
+
+        <!-- Navigation -->
+        <nav class="dashboard-nav">
+            <a href="/negocio/dashboard" class="nav-link">Dashboard</a>
+            <a href="/negocio/inventario" class="nav-link">Inventario</a>
+            <a href="/negocio/ventas" class="nav-link">Ventas</a>
+            <a href="/negocio/usuarios" class="nav-link">Usuarios</a>
+            <a href="/negocio/reportes" class="nav-link active">Reportes</a>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="dashboard-main">
+            <div class="content-section">
+                <h2>⚠️ Control de Inventario</h2>
+                <p>Monitorea productos con stock bajo y agotados</p>
+
+                <!-- Alertas principales -->
+                <div class="alert-section">
+                    <div class="alert-card warning">
+                        <h3>Stock Bajo</h3>
+                        <div class="alert-number">{{ total_productos_bajo_stock }}</div>
+                        <p class="alert-description">Productos con menos de 10 unidades</p>
+                    </div>
+
+                    <div class="alert-card danger">
+                        <h3>Agotados</h3>
+                        <div class="alert-number">{{ total_productos_agotados }}</div>
+                        <p class="alert-description">Productos sin stock disponible</p>
+                    </div>
+
+                    <div class="alert-card success">
+                        <h3>Total Productos</h3>
+                        <div class="alert-number">{{ total_productos }}</div>
+                        <p class="alert-description">Productos en inventario</p>
+                    </div>
+                </div>
+
+                <!-- Productos con stock bajo -->
+                {% if stock_bajo %}
+                <div class="productos-section">
+                    <h3>📉 Productos con Stock Bajo</h3>
+                    <div class="productos-grid">
+                        {% for producto in stock_bajo %}
+                        <div class="producto-alert-card">
+                            <div class="producto-nombre">{{ producto.nombre }}</div>
+                            <div class="producto-info">
+                                <span class="stock-badge stock-warning">{{ producto.cantidad }} unidades</span>
+                                <span class="producto-precio">${{ "%.0f"|format(producto.precio) }}</span>
+                            </div>
+                            <div class="producto-acciones">
+                                <button class="btn btn-sm" onclick="editProduct({{ producto.id }}, '{{ producto.nombre }}', '{{ producto.codigo }}', '{{ producto.categoria or '' }}', {{ producto.precio }}, {{ producto.cantidad }}, '{{ producto.proveedor or '' }}')">Editar</button>
+                                <a href="/negocio/inventario" class="btn btn-sm btn-primary">Ver Inventario</a>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Productos agotados -->
+                {% if productos_agotados %}
+                <div class="productos-section">
+                    <h3>🚫 Productos Agotados</h3>
+                    <div class="productos-grid">
+                        {% for producto in productos_agotados %}
+                        <div class="producto-alert-card agotado">
+                            <div class="producto-nombre">{{ producto.nombre }}</div>
+                            <div class="producto-info">
+                                <span class="stock-badge stock-danger">SIN STOCK</span>
+                                <span class="producto-precio">${{ "%.0f"|format(producto.precio) }}</span>
+                            </div>
+                            <div class="producto-acciones">
+                                <button class="btn btn-sm" onclick="editProduct({{ producto.id }}, '{{ producto.nombre }}', '{{ producto.codigo }}', '{{ producto.categoria or '' }}', {{ producto.precio }}, {{ producto.cantidad }}, '{{ producto.proveedor or '' }}')">Editar</button>
+                                <a href="/negocio/inventario" class="btn btn-sm btn-primary">Ver Inventario</a>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Acciones recomendadas -->
+                <div class="acciones-recomendadas">
+                    <h3>💡 Acciones Recomendadas</h3>
+                    <div class="acciones-list">
+                        <div class="accion-item">
+                            <h4>📦 Reposición de Inventario</h4>
+                            <p>Contacta a tus proveedores para reponer productos con stock bajo</p>
+                        </div>
+                        <div class="accion-item">
+                            <h4>📊 Análisis de Ventas</h4>
+                            <p>Revisa cuáles productos se venden más para optimizar tu inventario</p>
+                        </div>
+                        <div class="accion-item">
+                            <h4>⚙️ Alertas Automáticas</h4>
+                            <p>Configura notificaciones cuando el stock llegue a niveles críticos</p>
+                        </div>
+                        <div class="accion-item">
+                            <h4>📈 Planificación</h4>
+                            <p>Elabora un plan de compras basado en el historial de ventas</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="/static/js/main.js"></script>
+    <script>
+        function editProduct(id, nombre, codigo, categoria, precio, cantidad, proveedor) {
+            // Esta función debería estar definida en admin.js
+            // Por ahora, redirigir al inventario
+            window.location.href = '/negocio/inventario';
+        }
+    </script>
+</body>
+</html>

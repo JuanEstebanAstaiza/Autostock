@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Autostock - Admin - KPIs</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .periodo-selector {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+            margin-bottom: 3rem;
+        }
+
+        .periodo-selector h3 {
+            margin-bottom: 1.5rem;
+            color: #1A2238;
+            border-bottom: 2px solid #6C757D;
+            padding-bottom: 0.5rem;
+        }
+
+        .periodo-buttons {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .periodo-btn {
+            padding: 0.75rem 1.5rem;
+            border: 2px solid #6C757D;
+            background: white;
+            color: #6C757D;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .periodo-btn:hover, .periodo-btn.active {
+            background: #6C757D;
+            color: white;
+        }
+
+        .kpis-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .kpi-card {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.3s ease;
+        }
+
+        .kpi-card:hover {
+            transform: translateY(-4px);
+        }
+
+        .kpi-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #007BFF, #28A745);
+        }
+
+        .kpi-card.ventas::before {
+            background: linear-gradient(90deg, #007BFF, #0056B3);
+        }
+
+        .kpi-card.ingresos::before {
+            background: linear-gradient(90deg, #28A745, #20C997);
+        }
+
+        .kpi-card.productos::before {
+            background: linear-gradient(90deg, #FFC107, #FF8C00);
+        }
+
+        .kpi-card.inventario::before {
+            background: linear-gradient(90deg, #17A2B8, #138496);
+        }
+
+        .kpi-card.crecimiento::before {
+            background: linear-gradient(90deg, #6F42C1, #5A359A);
+        }
+
+        .kpi-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #1A2238;
+            margin-bottom: 0.5rem;
+        }
+
+        .kpi-label {
+            color: #666;
+            font-size: 1rem;
+            font-weight: 500;
+            margin-bottom: 0.25rem;
+        }
+
+        .kpi-subtitle {
+            color: #888;
+            font-size: 0.9rem;
+        }
+
+        .kpi-trend {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+            font-weight: 500;
+            margin-top: 0.5rem;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+        }
+
+        .kpi-trend.positive {
+            background: #D4EDDA;
+            color: #155724;
+        }
+
+        .kpi-trend.negative {
+            background: #F8D7DA;
+            color: #721C24;
+        }
+
+        .kpi-trend.neutral {
+            background: #FFF3CD;
+            color: #856404;
+        }
+
+        .charts-section {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .chart-card {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+        }
+
+        .chart-card h3 {
+            margin-bottom: 1.5rem;
+            color: #1A2238;
+            border-bottom: 2px solid #6C757D;
+            padding-bottom: 0.5rem;
+        }
+
+        .chart-wrapper {
+            position: relative;
+            width: 100%;
+            height: 350px;
+            margin: 0 auto;
+        }
+
+        #productosChart, #vendedoresChart {
+            max-width: 100% !important;
+            height: 100% !important;
+        }
+
+        .top-lists {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .top-list-section {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+        }
+
+        .top-list-section h3 {
+            margin-bottom: 1.5rem;
+            color: #1A2238;
+            border-bottom: 2px solid #007BFF;
+            padding-bottom: 0.5rem;
+        }
+
+        .top-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .top-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            background: linear-gradient(90deg, #E3F2FD 0%, #FFF 100%);
+            border-radius: 8px;
+            border-left: 4px solid #007BFF;
+            transition: transform 0.3s ease;
+        }
+
+        .top-item:hover {
+            transform: translateX(4px);
+        }
+
+        .top-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .top-rank {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #007BFF, #0056B3);
+            color: white;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
+        .top-details h4 {
+            margin: 0 0 0.25rem 0;
+            color: #1A2238;
+            font-size: 1rem;
+        }
+
+        .top-details .meta {
+            color: #666;
+            font-size: 0.85rem;
+        }
+
+        .top-value {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #007BFF;
+            text-align: right;
+        }
+
+        .inventario-alerts {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+        }
+
+        .inventario-alerts h3 {
+            margin-bottom: 1.5rem;
+            color: #1A2238;
+            border-bottom: 2px solid #17A2B8;
+            padding-bottom: 0.5rem;
+        }
+
+        .alerts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .alert-item {
+            background: #F8F9FA;
+            padding: 1rem;
+            border-radius: 8px;
+            text-align: center;
+            border-left: 4px solid #17A2B8;
+        }
+
+        .alert-item.warning {
+            border-left-color: #FFC107;
+            background: #FFF3CD;
+        }
+
+        .alert-item.danger {
+            border-left-color: #DC3545;
+            background: #F8D7DA;
+        }
+
+        .alert-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #1A2238;
+            margin-bottom: 0.25rem;
+        }
+
+        .alert-label {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .top-lists {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .kpis-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+
+            .periodo-buttons {
+                flex-direction: column;
+            }
+
+            .periodo-btn {
+                width: 100%;
+                text-align: center;
+            }
+
+            .chart-card {
+                padding: 1.5rem;
+            }
+
+            .chart-wrapper {
+                height: 280px;
+            }
+
+            .kpi-card {
+                padding: 1.5rem;
+            }
+
+            .kpi-value {
+                font-size: 2rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .chart-wrapper {
+                height: 250px;
+            }
+
+            .alerts-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .top-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.75rem;
+            }
+
+            .top-value {
+                text-align: left;
+            }
+        }
+    </style>
+</head>
+<body class="admin-dashboard">
+    <div class="dashboard-container">
+        <!-- Header -->
+        <header class="dashboard-header admin-header">
+            <div class="header-content">
+                <h1>Autostock - KPIs</h1>
+                <div class="user-info">
+                    <a href="/negocio/reportes" class="btn btn-secondary">← Centro de Reportes</a>
+                    <form action="/logout" method="post" style="display: inline;">
+                        <button type="submit" class="btn btn-secondary">Cerrar Sesión</button>
+                    </form>
+                </div>
+            </div>
+        </header>
+
+        <!-- Navigation -->
+        <nav class="dashboard-nav">
+            <a href="/negocio/dashboard" class="nav-link">Dashboard</a>
+            <a href="/negocio/inventario" class="nav-link">Inventario</a>
+            <a href="/negocio/ventas" class="nav-link">Ventas</a>
+            <a href="/negocio/usuarios" class="nav-link">Usuarios</a>
+            <a href="/negocio/reportes" class="nav-link active">Reportes</a>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="dashboard-main">
+            <div class="content-section">
+                <h2>📊 KPIs - Indicadores Clave de Rendimiento</h2>
+                <p>Dashboard completo de métricas de rendimiento para {{ periodo_nombre|lower }}</p>
+
+                <!-- Selector de período -->
+                <div class="periodo-selector">
+                    <h3>Seleccionar Período</h3>
+                    <div class="periodo-buttons">
+                        <a href="?periodo=hoy" class="periodo-btn {% if periodo == 'hoy' %}active{% endif %}">Hoy</a>
+                        <a href="?periodo=semana-actual" class="periodo-btn {% if periodo == 'semana-actual' %}active{% endif %}">Semana Actual</a>
+                        <a href="?periodo=mes-actual" class="periodo-btn {% if periodo == 'mes-actual' %}active{% endif %}">Mes Actual</a>
+                        <a href="?periodo=mes-anterior" class="periodo-btn {% if periodo == 'mes-anterior' %}active{% endif %}">Mes Anterior</a>
+                    </div>
+                    <p style="margin-top: 1rem; color: #666;">Analizando KPIs para: <strong>{{ periodo_nombre }}</strong></p>
+                </div>
+
+                <!-- KPIs principales -->
+                <div class="kpis-grid">
+                    <div class="kpi-card ventas">
+                        <div class="kpi-value">{{ total_ventas }}</div>
+                        <div class="kpi-label">Total Ventas</div>
+                        <div class="kpi-subtitle">Transacciones realizadas</div>
+                        {% if crecimiento_ventas != 0 %}
+                        <div class="kpi-trend {% if crecimiento_ventas > 0 %}positive{% elif crecimiento_ventas < 0 %}negative{% else %}neutral{% endif %}">
+                            {% if crecimiento_ventas > 0 %}↗️{% elif crecimiento_ventas < 0 %}↘️{% else %}➡️{% endif %}
+                            {{ "%.1f"|format(crecimiento_ventas) }}%
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="kpi-card ingresos">
+                        <div class="kpi-value">${{ "%.0f"|format(total_ingresos) }}</div>
+                        <div class="kpi-label">Total Ingresos</div>
+                        <div class="kpi-subtitle">Valor total generado</div>
+                        {% if crecimiento_ingresos != 0 %}
+                        <div class="kpi-trend {% if crecimiento_ingresos > 0 %}positive{% elif crecimiento_ingresos < 0 %}negative{% else %}neutral{% endif %}">
+                            {% if crecimiento_ingresos > 0 %}↗️{% elif crecimiento_ingresos < 0 %}↘️{% else %}➡️{% endif %}
+                            {{ "%.1f"|format(crecimiento_ingresos) }}%
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="kpi-card productos">
+                        <div class="kpi-value">{{ productos_diferentes }}</div>
+                        <div class="kpi-label">Productos Diferentes</div>
+                        <div class="kpi-subtitle">Variedad en catálogo</div>
+                    </div>
+
+                    <div class="kpi-card productos">
+                        <div class="kpi-value">{{ total_productos_vendidos }}</div>
+                        <div class="kpi-label">Productos Vendidos</div>
+                        <div class="kpi-subtitle">Unidades totales</div>
+                    </div>
+
+                    <div class="kpi-card ingresos">
+                        <div class="kpi-value">${{ "%.0f"|format(promedio_por_venta) }}</div>
+                        <div class="kpi-label">Promedio por Venta</div>
+                        <div class="kpi-subtitle">Valor promedio</div>
+                    </div>
+
+                    <div class="kpi-card productos">
+                        <div class="kpi-value">{{ vendedores_activos }}</div>
+                        <div class="kpi-label">Vendedores Activos</div>
+                        <div class="kpi-subtitle">Equipo en acción</div>
+                    </div>
+
+                    <div class="kpi-card inventario">
+                        <div class="kpi-value">{{ total_productos_inventario }}</div>
+                        <div class="kpi-label">Total Inventario</div>
+                        <div class="kpi-subtitle">Productos en stock</div>
+                    </div>
+
+                    <div class="kpi-card inventario">
+                        <div class="kpi-value">${{ "%.0f"|format(valor_total_inventario) }}</div>
+                        <div class="kpi-label">Valor Inventario</div>
+                        <div class="kpi-subtitle">Valor total del stock</div>
+                    </div>
+
+                    <div class="kpi-card crecimiento">
+                        <div class="kpi-value">{{ "%.1f"|format(tasa_rotacion_inventario) }}%</div>
+                        <div class="kpi-label">Rotación Inventario</div>
+                        <div class="kpi-subtitle">Eficiencia de stock</div>
+                    </div>
+                </div>
+
+                <!-- Alertas de inventario -->
+                <div class="inventario-alerts">
+                    <h3>🚨 Alertas de Inventario</h3>
+                    <div class="alerts-grid">
+                        <div class="alert-item danger">
+                            <div class="alert-value">{{ productos_sin_stock }}</div>
+                            <div class="alert-label">Sin Stock</div>
+                        </div>
+                        <div class="alert-item warning">
+                            <div class="alert-value">{{ productos_stock_bajo }}</div>
+                            <div class="alert-label">Stock Bajo (≤10)</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Top productos y vendedores -->
+                <div class="top-lists">
+                    <div class="top-list-section">
+                        <h3>🏆 Top Productos</h3>
+                        <div class="top-list">
+                            {% for producto in top_productos %}
+                            <div class="top-item">
+                                <div class="top-info">
+                                    <div class="top-rank">{{ loop.index }}</div>
+                                    <div class="top-details">
+                                        <h4>{{ producto.nombre }}</h4>
+                                        <div class="meta">{{ producto.cantidad }} unidades vendidas</div>
+                                    </div>
+                                </div>
+                                <div class="top-value">${{ "%.0f"|format(producto.ingresos) }}</div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <div class="top-list-section">
+                        <h3>👥 Top Vendedores</h3>
+                        <div class="top-list">
+                            {% for vendedor in top_vendedores %}
+                            <div class="top-item">
+                                <div class="top-info">
+                                    <div class="top-rank">{{ loop.index }}</div>
+                                    <div class="top-details">
+                                        <h4>{{ vendedor.nombre }}</h4>
+                                        <div class="meta">{{ vendedor.ventas }} ventas realizadas</div>
+                                    </div>
+                                </div>
+                                <div class="top-value">${{ "%.0f"|format(vendedor.ingresos) }}</div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Gráficos -->
+                <div class="charts-section">
+                    <div class="chart-card">
+                        <h3>📊 Distribución de Ingresos por Producto</h3>
+                        <div class="chart-wrapper">
+                            <canvas id="productosChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="chart-card">
+                        <h3>👥 Rendimiento de Vendedores</h3>
+                        <div class="chart-wrapper">
+                            <canvas id="vendedoresChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="/static/js/main.js"></script>
+    <script>
+        // Datos para los gráficos
+        const topProductos = {{ top_productos|tojson }};
+        const topVendedores = {{ top_vendedores|tojson }};
+
+        // Gráfico de productos
+        const ctxProductos = document.getElementById('productosChart').getContext('2d');
+        const productosChart = new Chart(ctxProductos, {
+            type: 'doughnut',
+            data: {
+                labels: topProductos.map(item => item.nombre),
+                datasets: [{
+                    data: topProductos.map(item => item.ingresos),
+                    backgroundColor: [
+                        '#007BFF', '#28A745', '#FFC107', '#DC3545', '#17A2B8',
+                        '#6F42C1', '#FD7E14', '#20C997', '#E83E8C', '#6C757D'
+                    ],
+                    borderWidth: 2,
+                    borderColor: '#fff'
+                }]
+            },
+            options: {
+                responsive: false,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            padding: 20,
+                            usePointStyle: true
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0,0,0,0.8)',
+                        titleColor: '#fff',
+                        bodyColor: '#fff',
+                        borderColor: '#007BFF',
+                        borderWidth: 1,
+                        callbacks: {
+                            label: function(context) {
+                                return '$' + context.parsed.toLocaleString();
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        // Gráfico de vendedores
+        const ctxVendedores = document.getElementById('vendedoresChart').getContext('2d');
+        const vendedoresChart = new Chart(ctxVendedores, {
+            type: 'bar',
+            data: {
+                labels: topVendedores.map(item => item.nombre),
+                datasets: [{
+                    label: 'Ingresos por Vendedor ($)',
+                    data: topVendedores.map(item => item.ingresos),
+                    backgroundColor: 'rgba(40, 167, 69, 0.8)',
+                    borderColor: '#28A745',
+                    borderWidth: 2,
+                    borderRadius: 4,
+                    borderSkipped: false
+                }]
+            },
+            options: {
+                responsive: false,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0,0,0,0.8)',
+                        titleColor: '#fff',
+                        bodyColor: '#fff',
+                        borderColor: '#28A745',
+                        borderWidth: 1,
+                        callbacks: {
+                            label: function(context) {
+                                return '$' + context.parsed.y.toLocaleString();
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return '$' + value.toLocaleString();
+                            },
+                            font: {
+                                size: 11
+                            }
+                        },
+                        grid: {
+                            color: 'rgba(0,0,0,0.1)'
+                        }
+                    },
+                    x: {
+                        ticks: {
+                            font: {
+                                size: 11
+                            }
+                        },
+                        grid: {
+                            display: false
+                        }
+                    }
+                }
+            }
+        });
+
+        // Animación de carga
+        document.addEventListener('DOMContentLoaded', function() {
+            // Fijar tamaño de gráficos
+            const charts = document.querySelectorAll('.chart-wrapper canvas');
+            charts.forEach(canvas => {
+                canvas.style.width = '100%';
+                canvas.style.height = '350px';
+                canvas.width = canvas.parentElement.offsetWidth;
+                canvas.height = 350;
+            });
+
+            // Animar cards de KPIs
+            const kpiCards = document.querySelectorAll('.kpi-card');
+            kpiCards.forEach((card, index) => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+                card.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
+
+                setTimeout(() => {
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, index * 100);
+            });
+
+            // Animar alertas
+            const alertItems = document.querySelectorAll('.alert-item');
+            alertItems.forEach((item, index) => {
+                item.style.opacity = '0';
+                item.style.transform = 'translateY(20px)';
+                item.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
+
+                setTimeout(() => {
+                    item.style.opacity = '1';
+                    item.style.transform = 'translateY(0)';
+                }, 800 + index * 100);
+            });
+
+            // Animar top items
+            const topItems = document.querySelectorAll('.top-item');
+            topItems.forEach((item, index) => {
+                item.style.opacity = '0';
+                item.style.transform = 'translateX(-20px)';
+                item.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
+
+                setTimeout(() => {
+                    item.style.opacity = '1';
+                    item.style.transform = 'translateX(0)';
+                }, 1000 + index * 50);
+            });
+        });
+    </script>
+</body>
+</html>

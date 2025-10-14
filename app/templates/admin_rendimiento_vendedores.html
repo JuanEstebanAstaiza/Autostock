@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Autostock - Admin - Rendimiento Vendedores</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .vendedores-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .vendedor-card {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+            border: 1px solid #E0E3E7;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .vendedor-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+        }
+
+        .vendedor-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .vendedor-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #3AB795, #F6AE2D);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 1.2rem;
+            margin-right: 1rem;
+        }
+
+        .vendedor-info h3 {
+            margin: 0 0 0.25rem 0;
+            color: #1A2238;
+            font-size: 1.25rem;
+        }
+
+        .vendedor-metrics {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .metric-item {
+            text-align: center;
+            padding: 1rem;
+            background: #F8F9FA;
+            border-radius: 8px;
+        }
+
+        .metric-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #3AB795;
+            display: block;
+        }
+
+        .metric-label {
+            font-size: 0.85rem;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .vendedor-progress {
+            margin-top: 1rem;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #E0E3E7;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 0.5rem;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #3AB795, #F6AE2D);
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+
+        .progress-label {
+            font-size: 0.8rem;
+            color: #666;
+        }
+
+        .ranking-section {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+
+        .ranking-section h3 {
+            margin-bottom: 1.5rem;
+            color: #1A2238;
+            border-bottom: 2px solid #3AB795;
+            padding-bottom: 0.5rem;
+        }
+
+        .ranking-table-container {
+            overflow-x: auto;
+        }
+
+        .ranking-table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 600px;
+        }
+
+        .ranking-table th,
+        .ranking-table td {
+            padding: 1rem 1.25rem;
+            text-align: left;
+            border-bottom: 1px solid #E0E3E7;
+        }
+
+        .ranking-table th {
+            background-color: #1A2238;
+            color: white;
+            font-weight: 600;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .ranking-table tbody tr:hover {
+            background-color: rgba(26, 34, 56, 0.04);
+        }
+
+        .rank-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #3AB795, #F6AE2D);
+            color: white;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
+        .ranking-table .total-cell {
+            text-align: right;
+            font-weight: bold;
+            color: #3AB795;
+        }
+
+        .ranking-table .ventas-cell {
+            text-align: center;
+            font-weight: 500;
+        }
+
+        .summary-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .summary-stat {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .summary-stat h4 {
+            margin: 0 0 0.5rem 0;
+            color: #1A2238;
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        .summary-stat .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #3AB795;
+            margin-bottom: 0.25rem;
+        }
+
+        .summary-stat p {
+            margin: 0;
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .vendedores-grid {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+
+            .vendedor-card {
+                padding: 1.5rem;
+            }
+
+            .vendedor-metrics {
+                grid-template-columns: 1fr;
+            }
+
+            .ranking-section {
+                padding: 1.5rem;
+            }
+
+            .ranking-table th,
+            .ranking-table td {
+                padding: 0.75rem 0.5rem;
+                font-size: 0.85rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .vendedor-header {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .vendedor-avatar {
+                margin-right: 0;
+                margin-bottom: 1rem;
+            }
+
+            .summary-stats {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body class="admin-dashboard">
+    <div class="dashboard-container">
+        <!-- Header -->
+        <header class="dashboard-header admin-header">
+            <div class="header-content">
+                <h1>Autostock - Rendimiento de Vendedores</h1>
+                <div class="user-info">
+                    <a href="/negocio/reportes" class="btn btn-secondary">← Volver a Reportes</a>
+                    <form action="/logout" method="post" style="display: inline;">
+                        <button type="submit" class="btn btn-secondary">Cerrar Sesión</button>
+                    </form>
+                </div>
+            </div>
+        </header>
+
+        <!-- Navigation -->
+        <nav class="dashboard-nav">
+            <a href="/negocio/dashboard" class="nav-link">Dashboard</a>
+            <a href="/negocio/inventario" class="nav-link">Inventario</a>
+            <a href="/negocio/ventas" class="nav-link">Ventas</a>
+            <a href="/negocio/usuarios" class="nav-link">Usuarios</a>
+            <a href="/negocio/reportes" class="nav-link active">Reportes</a>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="dashboard-main">
+            <div class="content-section">
+                <h2>👥 Rendimiento de Vendedores</h2>
+                <p>Métricas de rendimiento de cada vendedor en los últimos 30 días</p>
+
+                <!-- Estadísticas generales -->
+                <div class="summary-stats">
+                    <div class="summary-stat">
+                        <h4>Total Vendedores</h4>
+                        <div class="stat-number">{{ rendimiento|length }}</div>
+                        <p>vendedores activos</p>
+                    </div>
+                    <div class="summary-stat">
+                        <h4>Ventas Totales</h4>
+                        <div class="stat-number">{{ rendimiento|sum(attribute='total_ventas') if rendimiento else 0 }}</div>
+                        <p>ventas realizadas</p>
+                    </div>
+                    <div class="summary-stat">
+                        <h4>Ingresos Totales</h4>
+                        <div class="stat-number">${{ "%.0f"|format(rendimiento|sum(attribute='total_ingresos') if rendimiento else 0) }}</div>
+                        <p>generados</p>
+                    </div>
+                </div>
+
+                <!-- Cards de vendedores -->
+                <div class="vendedores-grid">
+                    {% for vendedor in rendimiento %}
+                    <div class="vendedor-card">
+                        <div class="vendedor-header">
+                            <div class="vendedor-avatar">
+                                {{ vendedor.vendedor[0]|upper }}
+                            </div>
+                            <div class="vendedor-info">
+                                <h3>{{ vendedor.vendedor }}</h3>
+                                <p>Vendedor</p>
+                            </div>
+                        </div>
+
+                        <div class="vendedor-metrics">
+                            <div class="metric-item">
+                                <span class="metric-value">{{ vendedor.total_ventas }}</span>
+                                <span class="metric-label">ventas</span>
+                            </div>
+                            <div class="metric-item">
+                                <span class="metric-value">${{ "%.0f"|format(vendedor.total_ingresos) }}</span>
+                                <span class="metric-label">ingresos</span>
+                            </div>
+                        </div>
+
+                        <div class="vendedor-progress">
+                            <div class="progress-bar">
+                                {% set max_ingresos = rendimiento|max(attribute='total_ingresos') %}
+                                {% if max_ingresos > 0 %}
+                                    {% set percentage = (vendedor.total_ingresos / max_ingresos) * 100 %}
+                                    <div class="progress-fill" style="width: {{ percentage }}%"></div>
+                                {% else %}
+                                    <div class="progress-fill" style="width: 0%"></div>
+                                {% endif %}
+                            </div>
+                            <div class="progress-label">
+                                Venta promedio: ${{ "%.0f"|format(vendedor.venta_promedio) }}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Tabla de ranking detallada -->
+                <div class="ranking-section">
+                    <h3>📊 Ranking Detallado</h3>
+                    <div class="ranking-table-container">
+                        <table class="ranking-table data-table">
+                            <thead>
+                                <tr>
+                                    <th style="width: 10%;">Ranking</th>
+                                    <th style="width: 30%;">Vendedor</th>
+                                    <th style="width: 20%;">Total Ventas</th>
+                                    <th style="width: 20%;">Ingresos</th>
+                                    <th style="width: 20%;">Venta Promedio</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for vendedor in rendimiento %}
+                                <tr>
+                                    <td>
+                                        <div class="rank-badge">{{ loop.index }}</div>
+                                    </td>
+                                    <td>{{ vendedor.vendedor }}</td>
+                                    <td class="ventas-cell">{{ vendedor.total_ventas }}</td>
+                                    <td class="total-cell">${{ "%.0f"|format(vendedor.total_ingresos) }}</td>
+                                    <td class="total-cell">${{ "%.0f"|format(vendedor.venta_promedio) }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="/static/js/main.js"></script>
+    <script>
+        // Animación de carga para las tarjetas
+        document.addEventListener('DOMContentLoaded', function() {
+            const cards = document.querySelectorAll('.vendedor-card');
+            cards.forEach((card, index) => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+                card.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
+
+                setTimeout(() => {
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, index * 100);
+            });
+
+            // Animar barras de progreso
+            setTimeout(() => {
+                const progressBars = document.querySelectorAll('.progress-fill');
+                progressBars.forEach(bar => {
+                    bar.style.width = bar.style.width; // Trigger animation
+                });
+            }, 500);
+        });
+    </script>
+</body>
+</html>
