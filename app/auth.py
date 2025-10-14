@@ -17,7 +17,7 @@ from models.user import User
 # Configuración JWT
 SECRET_KEY = "autostock_secret_key_2024"  # En producción, usar variable de entorno
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
+ACCESS_TOKEN_EXPIRE_MINUTES = 480  # 8 horas
 
 # Configuración de hash de contraseñas
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
