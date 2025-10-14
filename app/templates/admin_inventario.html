@@ -188,7 +188,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h3 id="modal-title">Agregar Producto</h3>
-                <span class="modal-close">&times;</span>
+                <span class="modal-close" onclick="closeCurrentModal(this)">&times;</span>
             </div>
             <form id="product-form" action="/negocio/inventario" method="post">
                 <input type="hidden" id="product-id" name="id" value="">

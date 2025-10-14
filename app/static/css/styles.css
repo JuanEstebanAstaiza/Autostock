@@ -598,7 +598,17 @@ body {
     }
 
     .stats-grid {
-        grid-template-columns: repeat(5, 1fr);
+        display: flex !important;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 1.5rem;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .stat-card {
+        flex: 0 0 auto;
+        width: 280px;
     }
 
     .dashboard-grid {

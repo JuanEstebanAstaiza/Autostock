@@ -138,8 +138,63 @@ const Utils = {
     }
 };
 
+// Función para cerrar modales
+function closeModal(modalId) {
+    const modal = document.getElementById(modalId);
+    if (modal) {
+        modal.style.display = 'none';
+        document.body.style.overflow = 'auto';
+    }
+}
+
+// Función para abrir modales
+function openModal(modalId) {
+    const modal = document.getElementById(modalId);
+    if (modal) {
+        modal.style.display = 'block';
+        document.body.style.overflow = 'hidden';
+    }
+}
+
+// Función para cerrar modal desde elemento (usada por modal-close)
+function closeCurrentModal(element) {
+    const modal = element.closest('.modal');
+    if (modal) {
+        modal.style.display = 'none';
+        document.body.style.overflow = 'auto';
+    }
+}
+
 // Inicialización cuando el DOM está listo
 document.addEventListener('DOMContentLoaded', function() {
+    // Funcionalidad de modales - agregar event listeners a botones de cerrar
+    const modalCloseButtons = document.querySelectorAll('.modal-close');
+    modalCloseButtons.forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            closeCurrentModal(this);
+        });
+
+        // También agregar onclick directo por compatibilidad
+        button.onclick = function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            closeCurrentModal(this);
+        };
+    });
+
+    // Cerrar modal al hacer click fuera del contenido
+    const modals = document.querySelectorAll('.modal');
+    modals.forEach(modal => {
+        modal.addEventListener('click', function(e) {
+            if (e.target === this) {
+                this.style.display = 'none';
+                document.body.style.overflow = 'auto';
+            }
+        });
+    });
+
     // Validación de formularios
     const forms = document.querySelectorAll('form');
     forms.forEach(form => {

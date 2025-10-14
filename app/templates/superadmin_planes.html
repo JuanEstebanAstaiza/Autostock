@@ -74,7 +74,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h3 id="modal-title">Crear Nuevo Plan</h3>
-                <span class="modal-close">&times;</span>
+                <span class="modal-close" onclick="closeCurrentModal(this)">&times;</span>
             </div>
             <form id="plan-form" action="/superadmin/planes" method="post">
                 <input type="hidden" id="plan-id" name="id" value="">
