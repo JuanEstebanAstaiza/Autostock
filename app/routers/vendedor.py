@@ -9,7 +9,7 @@ from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 from sqlalchemy import func, desc
 from typing import List
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from models import get_db
 from auth import require_vendedor_from_cookie
@@ -31,22 +31,36 @@ async def dashboard(
     """Dashboard simple del vendedor"""
     negocio_id = current_user.negocio_id
 
-    # Estadísticas personales del día
-    hoy = datetime.now().date()
+    # Zona horaria de Colombia (UTC-5)
+    colombia_tz = timezone(timedelta(hours=-5))
+    ahora_colombia = datetime.now(colombia_tz)
+    hoy_colombia = ahora_colombia.date()
+
+    # Estadísticas personales del día en zona horaria de Colombia
+    inicio_dia = datetime.combine(hoy_colombia, datetime.min.time()).replace(tzinfo=colombia_tz)
+    fin_dia = datetime.combine(hoy_colombia, datetime.max.time()).replace(tzinfo=colombia_tz)
+
+    # Convertir a UTC para comparación con la base de datos
+    inicio_dia_utc = inicio_dia.astimezone(timezone.utc)
+    fin_dia_utc = fin_dia.astimezone(timezone.utc)
+
     ventas_hoy = db.query(func.sum(Venta.valor_total)).filter(
         Venta.vendedor_id == current_user.id,
-        func.date(Venta.fecha_venta) == hoy
+        Venta.fecha_venta >= inicio_dia_utc,
+        Venta.fecha_venta <= fin_dia_utc
     ).scalar() or 0
+
 
     cantidad_ventas_hoy = db.query(Venta).filter(
         Venta.vendedor_id == current_user.id,
-        func.date(Venta.fecha_venta) == hoy
+        Venta.fecha_venta >= inicio_dia_utc,
+        Venta.fecha_venta <= fin_dia_utc
     ).count()
 
     # Productos con bajo stock (para información)
     productos_bajo_stock = db.query(Producto).filter(
         Producto.negocio_id == negocio_id,
-        Producto.cantidad <= 5
+        Producto.cantidad <= 10
     ).count()
 
     # Ventas recientes del vendedor
@@ -182,6 +196,7 @@ async def registrar_venta(
     producto.cantidad -= cantidad
 
     db.commit()
+
 
     return RedirectResponse(url="/vendedor/dashboard", status_code=302)
 

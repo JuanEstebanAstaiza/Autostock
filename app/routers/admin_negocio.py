@@ -11,7 +11,7 @@ from sqlalchemy import func, desc
 from typing import List
 import csv
 import json
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from auth import require_admin_from_cookie, require_same_business_from_cookie, get_password_hash
 
 from models import get_db
@@ -41,18 +41,39 @@ async def dashboard(
         Producto.cantidad <= 10
     ).count()
 
-    # Ventas del día
-    hoy = datetime.now().date()
+    # Zona horaria de Colombia (UTC-5)
+    colombia_tz = timezone(timedelta(hours=-5))
+    ahora_colombia = datetime.now(colombia_tz)
+    hoy_colombia = ahora_colombia.date()
+
+    # Ventas del día en zona horaria de Colombia
+    inicio_dia = datetime.combine(hoy_colombia, datetime.min.time()).replace(tzinfo=colombia_tz)
+    fin_dia = datetime.combine(hoy_colombia, datetime.max.time()).replace(tzinfo=colombia_tz)
+
+    # Convertir a UTC para comparación con la base de datos (que almacena en UTC)
+    inicio_dia_utc = inicio_dia.astimezone(timezone.utc)
+    fin_dia_utc = fin_dia.astimezone(timezone.utc)
+
     ventas_hoy = db.query(func.sum(Venta.valor_total)).filter(
         Venta.negocio_id == negocio_id,
-        func.date(Venta.fecha_venta) == hoy
+        Venta.fecha_venta >= inicio_dia_utc,
+        Venta.fecha_venta <= fin_dia_utc
     ).scalar() or 0
 
-    # Ventas del mes
-    mes_actual = datetime.now().replace(day=1)
+
+    # Ventas del mes en zona horaria de Colombia
+    primer_dia_mes_colombia = hoy_colombia.replace(day=1)
+    inicio_mes = datetime.combine(primer_dia_mes_colombia, datetime.min.time()).replace(tzinfo=colombia_tz)
+    fin_mes = ahora_colombia
+
+    # Convertir a UTC para comparación con la base de datos
+    inicio_mes_utc = inicio_mes.astimezone(timezone.utc)
+    fin_mes_utc = fin_mes.astimezone(timezone.utc)
+
     ventas_mes = db.query(func.sum(Venta.valor_total)).filter(
         Venta.negocio_id == negocio_id,
-        Venta.fecha_venta >= mes_actual
+        Venta.fecha_venta >= inicio_mes_utc,
+        Venta.fecha_venta <= fin_mes_utc
     ).scalar() or 0
 
     # Productos más vendidos (últimos 30 días)
@@ -268,6 +289,7 @@ async def registrar_venta(
     producto.cantidad -= cantidad
 
     db.commit()
+
 
     return RedirectResponse(url="/negocio/ventas", status_code=302)
 

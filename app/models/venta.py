@@ -1,6 +1,7 @@
 from sqlalchemy import Column, Integer, Float, DateTime, ForeignKey
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
+from datetime import datetime, timezone, timedelta
 from . import Base
 
 class Venta(Base):
