@@ -348,7 +348,7 @@
                 }]
             },
             options: {
-                responsive: false,
+                responsive: true,
                 maintainAspectRatio: false,
                 plugins: {
                     legend: {
@@ -450,14 +450,16 @@
 
         // Animación de carga
         document.addEventListener('DOMContentLoaded', function() {
-            // Fijar tamaño del gráfico
+            // Configurar gráfico responsive
             const canvas = document.getElementById('ventasChart');
             const wrapper = document.querySelector('.chart-wrapper');
 
             if (canvas && wrapper) {
-                canvas.style.width = '800px';
-                canvas.style.height = '300px';
-                canvas.width = 800;
+                // Hacer el canvas responsive
+                canvas.style.width = '100%';
+                canvas.style.height = '100%';
+                canvas.style.maxWidth = '800px';
+                canvas.width = wrapper.offsetWidth;
                 canvas.height = 300;
             }
 
@@ -482,27 +484,21 @@
             }, 300);
         });
 
-        // Manejar redimensionamiento para móviles
+        // Manejar redimensionamiento para mantener proporciones
         window.addEventListener('resize', function() {
-            if (window.innerWidth <= 480) {
-                const wrapper = document.querySelector('.chart-wrapper');
-                if (wrapper) {
-                    wrapper.style.height = '200px';
-                    const canvas = document.getElementById('ventasChart');
-                    if (canvas) {
-                        canvas.style.height = '200px';
-                        canvas.height = 200;
-                    }
-                }
-            } else if (window.innerWidth <= 768) {
-                const wrapper = document.querySelector('.chart-wrapper');
-                if (wrapper) {
-                    wrapper.style.height = '250px';
-                    const canvas = document.getElementById('ventasChart');
-                    if (canvas) {
-                        canvas.style.height = '250px';
-                        canvas.height = 250;
-                    }
+            const canvas = document.getElementById('ventasChart');
+            const wrapper = document.querySelector('.chart-wrapper');
+
+            if (canvas && wrapper) {
+                // Actualizar el ancho del canvas para que coincida con el wrapper
+                canvas.width = wrapper.offsetWidth;
+                // Mantener altura proporcional
+                if (window.innerWidth <= 480) {
+                    canvas.height = 200;
+                } else if (window.innerWidth <= 768) {
+                    canvas.height = 250;
+                } else {
+                    canvas.height = 300;
                 }
             }
         });

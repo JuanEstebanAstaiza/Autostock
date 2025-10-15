@@ -92,6 +92,11 @@
                                             <form action="/superadmin/negocios/{{ negocio.id }}/reset-password" method="post" style="display: inline;">
                                                 <button type="submit" class="dropdown-item">Reset Password</button>
                                             </form>
+                                            {% if negocio.estado_suscripcion == "suspendido" %}
+                                            <button type="button" class="dropdown-item text-danger" onclick="eliminarNegocio({{ negocio.id }}, '{{ negocio.nombre_negocio }}')">
+                                                🗑️ Eliminar Negocio
+                                            </button>
+                                            {% endif %}
                                         </div>
                                     </div>
                                 </td>
@@ -323,6 +328,36 @@
                 if (event.target == modal) {
                     modal.style.display = 'none';
                 }
+            }
+        }
+
+        // Función para eliminar negocio suspendido
+        function eliminarNegocio(negocioId, nombreNegocio) {
+            if (confirm(`¿Está seguro de que desea eliminar permanentemente el negocio "${nombreNegocio}"?\n\nEsta acción eliminará:\n• Todos los productos\n• Todas las ventas\n• Todos los usuarios\n• El negocio completo\n\nEsta acción NO se puede deshacer.`)) {
+
+                // Enviar solicitud DELETE
+                fetch(`/superadmin/negocios/${negocioId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                })
+                .then(response => {
+                    if (response.ok) {
+                        return response.json();
+                    } else {
+                        throw new Error('Error al eliminar negocio');
+                    }
+                })
+                .then(data => {
+                    alert(data.message || 'Negocio eliminado exitosamente');
+                    // Recargar la página para actualizar la lista
+                    window.location.reload();
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error al eliminar el negocio. Intente nuevamente.');
+                });
             }
         }
     </script>

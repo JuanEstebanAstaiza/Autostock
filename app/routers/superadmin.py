@@ -7,7 +7,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request, Form, File, Uplo
 from fastapi.responses import FileResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
-from sqlalchemy import func
+from sqlalchemy import func, desc
 from typing import List
 import os
 import csv
@@ -28,18 +28,37 @@ templates = Jinja2Templates(directory="templates")
 # Dashboard del SuperAdmin
 @router.get("/dashboard")
 async def dashboard(request: Request, db: Session = Depends(get_db), _: User = Depends(require_superadmin_from_cookie)):
-    """Dashboard principal del SuperAdministrador"""
-    # Estadísticas globales
+    """Dashboard principal del SuperAdministrador - Métricas del SaaS"""
+    # Estadísticas de clientes y planes
     total_negocios = db.query(Negocio).count()
     negocios_activos = db.query(Negocio).filter(Negocio.estado_suscripcion == "activo").count()
+    negocios_con_plan = db.query(Negocio).filter(Negocio.plan_id.isnot(None)).count()
     total_usuarios = db.query(User).count()
-    total_ventas = db.query(func.sum(Venta.valor_total)).scalar() or 0
 
-    # Ventas del mes actual
+    # Ingresos por venta de planes (no por productos vendidos por clientes)
+    # Calculamos ingresos históricos por planes asignados
+    ingresos_por_planes = db.query(func.sum(Plan.precio)).join(Negocio).filter(
+        Negocio.plan_id.isnot(None)
+    ).scalar() or 0.0
+
+    # MRR (Monthly Recurring Revenue) - ingresos mensuales de planes activos
+    mrr = db.query(func.sum(Plan.precio)).join(Negocio).filter(
+        Negocio.plan_id.isnot(None),
+        Negocio.estado_suscripcion == "activo"
+    ).scalar() or 0.0
+
+    # Planes más populares
+    planes_populares = db.query(
+        Plan.nombre_plan,
+        func.count(Negocio.id).label('cantidad')
+    ).join(Negocio).group_by(Plan.id).order_by(desc('cantidad')).limit(3).all()
+
+    # Ingresos del mes actual por nuevos clientes
     mes_actual = datetime.now().replace(day=1)
-    ventas_mes = db.query(func.sum(Venta.valor_total)).filter(
-        Venta.fecha_venta >= mes_actual
-    ).scalar() or 0
+    ingresos_mes_nuevos_clientes = db.query(func.sum(Plan.precio)).join(Negocio).filter(
+        Negocio.fecha_registro >= mes_actual,
+        Negocio.plan_id.isnot(None)
+    ).scalar() or 0.0
 
     # Negocios recientes (últimos 5)
     negocios_recientes = db.query(Negocio).order_by(Negocio.fecha_registro.desc()).limit(5).all()
@@ -48,9 +67,12 @@ async def dashboard(request: Request, db: Session = Depends(get_db), _: User = D
         "request": request,
         "total_negocios": total_negocios,
         "negocios_activos": negocios_activos,
+        "negocios_con_plan": negocios_con_plan,
         "total_usuarios": total_usuarios,
-        "total_ventas": f"{total_ventas:.2f}",
-        "ventas_mes": f"{ventas_mes:.2f}",
+        "ingresos_por_planes": f"{ingresos_por_planes:.2f}",
+        "mrr": f"{mrr:.2f}",
+        "ingresos_mes_nuevos_clientes": f"{ingresos_mes_nuevos_clientes:.2f}",
+        "planes_populares": planes_populares,
         "negocios_recientes": negocios_recientes
     })
 
@@ -119,29 +141,9 @@ async def crear_negocio(
         )
         db.add(vendedor_user)
 
-        # Crear productos de ejemplo
-        productos_ejemplo = [
-            {"codigo": "LLANTA001", "nombre": "Llanta 185/65R14", "categoria": "Llantas", "precio": 45.99, "cantidad": 20},
-            {"codigo": "LLANTA002", "nombre": "Llanta 195/55R15", "categoria": "Llantas", "precio": 52.99, "cantidad": 15},
-            {"codigo": "LLANTA003", "nombre": "Llanta 205/55R16", "categoria": "Llantas", "precio": 59.99, "cantidad": 12},
-            {"codigo": "ACEITE001", "nombre": "Aceite Motor 5W30", "categoria": "Aceites", "precio": 12.99, "cantidad": 25},
-            {"codigo": "ACEITE002", "nombre": "Aceite Motor 10W40", "categoria": "Aceites", "precio": 14.99, "cantidad": 20},
-            {"codigo": "FILTRO001", "nombre": "Filtro de Aire Universal", "categoria": "Filtros", "precio": 8.99, "cantidad": 30},
-            {"codigo": "FILTRO002", "nombre": "Filtro de Aceite", "categoria": "Filtros", "precio": 6.99, "cantidad": 35},
-            {"codigo": "BATERIA001", "nombre": "Batería 12V 45Ah", "categoria": "Baterías", "precio": 89.99, "cantidad": 8},
-        ]
-
-        for producto_data in productos_ejemplo:
-            producto = Producto(
-                negocio_id=negocio.id,
-                codigo=producto_data["codigo"],
-                nombre=producto_data["nombre"],
-                categoria=producto_data["categoria"],
-                precio=producto_data["precio"],
-                cantidad=producto_data["cantidad"],
-                proveedor="Proveedor Demo"
-            )
-            db.add(producto)
+        # NOTA: Los productos deben ser creados por el administrador del negocio,
+        # no automáticamente al crear el negocio.
+        # Los productos de ejemplo han sido removidos.
 
         db.commit()
 
@@ -332,3 +334,46 @@ async def descargar_backup(tipo: str, db: Session = Depends(get_db), _: User = D
         raise HTTPException(status_code=400, detail="Tipo de backup no válido")
 
     return FileResponse(filename, media_type='application/octet-stream', filename=filename)
+
+# Eliminar negocios suspendidos
+@router.delete("/negocios/{negocio_id}")
+async def eliminar_negocio_suspendido(
+    negocio_id: int,
+    db: Session = Depends(get_db),
+    _: User = Depends(require_superadmin_from_cookie)
+):
+    """Eliminar un negocio suspendido (solo negocios suspendidos pueden ser eliminados)"""
+    negocio = db.query(Negocio).filter(Negocio.id == negocio_id).first()
+    if not negocio:
+        raise HTTPException(status_code=404, detail="Negocio no encontrado")
+
+    # Solo permitir eliminar negocios suspendidos
+    if negocio.estado_suscripcion != "suspendido":
+        raise HTTPException(
+            status_code=400,
+            detail="Solo se pueden eliminar negocios suspendidos. Cambie el estado a 'suspendido' primero."
+        )
+
+    try:
+        # Obtener usuarios del negocio antes de eliminar
+        usuarios_negocio = db.query(User).filter(User.negocio_id == negocio_id).all()
+
+        # Eliminar ventas relacionadas
+        db.query(Venta).filter(Venta.negocio_id == negocio_id).delete()
+
+        # Eliminar productos del negocio
+        db.query(Producto).filter(Producto.negocio_id == negocio_id).delete()
+
+        # Eliminar usuarios del negocio
+        db.query(User).filter(User.negocio_id == negocio_id).delete()
+
+        # Finalmente eliminar el negocio
+        db.delete(negocio)
+
+        db.commit()
+
+        return {"message": f"Negocio '{negocio.nombre_negocio}' y todos sus datos asociados han sido eliminados exitosamente"}
+
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Error al eliminar negocio: {str(e)}")

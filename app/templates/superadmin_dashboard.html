@@ -33,39 +33,66 @@
         <main class="dashboard-main">
             <div class="stats-grid">
                 <div class="stat-card">
-                    <h3>Total Negocios</h3>
+                    <h3>Total Clientes</h3>
                     <div class="stat-number">{{ total_negocios }}</div>
+                    <div style="font-size: 0.8rem; color: #666; margin-top: 0.5rem;">Negocios registrados</div>
                 </div>
 
                 <div class="stat-card">
-                    <h3>Negocios Activos</h3>
+                    <h3>Clientes Activos</h3>
                     <div class="stat-number">{{ negocios_activos }}</div>
+                    <div style="font-size: 0.8rem; color: #666; margin-top: 0.5rem;">Suscripciones activas</div>
                 </div>
 
                 <div class="stat-card">
-                    <h3>Total Usuarios</h3>
-                    <div class="stat-number">{{ total_usuarios }}</div>
+                    <h3>MRR</h3>
+                    <div class="stat-number">${{ mrr }}</div>
+                    <div style="font-size: 0.8rem; color: #666; margin-top: 0.5rem;">Ingresos mensuales recurrentes</div>
                 </div>
 
                 <div class="stat-card">
-                    <h3>Ventas Globales</h3>
-                    <div class="stat-number">${{ total_ventas }}</div>
+                    <h3>Ingresos Totales</h3>
+                    <div class="stat-number">${{ ingresos_por_planes }}</div>
+                    <div style="font-size: 0.8rem; color: #666; margin-top: 0.5rem;">Por venta de planes</div>
                 </div>
 
                 <div class="stat-card">
-                    <h3>Ventas del Mes</h3>
-                    <div class="stat-number">${{ ventas_mes }}</div>
+                    <h3>Nuevos Clientes (Mes)</h3>
+                    <div class="stat-number">${{ ingresos_mes_nuevos_clientes }}</div>
+                    <div style="font-size: 0.8rem; color: #666; margin-top: 0.5rem;">Ingresos del mes actual</div>
+                </div>
+
+                <div class="stat-card">
+                    <h3>Planes Vendidos</h3>
+                    <div class="stat-number">{{ negocios_con_plan }}</div>
+                    <div style="font-size: 0.8rem; color: #666; margin-top: 0.5rem;">Planes asignados</div>
                 </div>
             </div>
 
+            <!-- Planes más populares -->
             <div class="content-section">
-                <h2>Negocios Recientes</h2>
+                <h2>Planes Más Populares</h2>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-bottom: 3rem;">
+                    {% for plan in planes_populares %}
+                    <div style="background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); text-align: center;">
+                        <h4 style="margin: 0 0 0.5rem 0; color: #1A2238;">{{ plan.nombre_plan }}</h4>
+                        <div style="font-size: 1.5rem; font-weight: bold; color: #007BFF;">{{ plan.cantidad }}</div>
+                        <div style="font-size: 0.9rem; color: #666;">clientes</div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Negocios recientes -->
+            <div class="content-section">
+                <h2>Clientes Recientes</h2>
                 <div class="table-container">
                     <table class="data-table">
                         <thead>
                             <tr>
                                 <th>Nombre</th>
                                 <th>Propietario</th>
+                                <th>Plan</th>
                                 <th>Estado</th>
                                 <th>Fecha Registro</th>
                                 <th>Acciones</th>
@@ -76,6 +103,13 @@
                             <tr>
                                 <td>{{ negocio.nombre_negocio }}</td>
                                 <td>{{ negocio.propietario }}</td>
+                                <td>
+                                    {% if negocio.plan %}
+                                        {{ negocio.plan.nombre_plan }}
+                                    {% else %}
+                                        <span style="color: #dc3545;">Sin plan</span>
+                                    {% endif %}
+                                </td>
                                 <td>
                                     <span class="status-badge status-{{ negocio.estado_suscripcion }}">
                                         {{ negocio.estado_suscripcion }}
