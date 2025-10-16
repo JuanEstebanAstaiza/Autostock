@@ -2,6 +2,13 @@
 
 Sistema de gestión de inventario y ventas tipo SaaS diseñado específicamente para negocios de montallantas. Construido con Python FastAPI, SQLite y frontend puro (HTML5, CSS3, JavaScript).
 
+## ✨ **NUEVAS FUNCIONALIDADES v2.0**
+
+- 🔔 **Sistema de Notificaciones en Tiempo Real**: Alertas automáticas cuando se registran ventas
+- 🔄 **Reset de Contraseñas**: Funcionalidad completa para SuperAdmin y Administradores
+- 🎨 **UI Mejorada**: Navegación responsive y diseño optimizado
+- 📱 **Experiencia Móvil**: Interfaz completamente adaptada para dispositivos móviles
+
 ## 🚀 Características
 
 - **Tres niveles de acceso**: SuperAdministrador, Administrador de Montallantas y Vendedor
@@ -9,6 +16,10 @@ Sistema de gestión de inventario y ventas tipo SaaS diseñado específicamente 
 - **Gestión completa**: Inventario, ventas, usuarios, reportes y backups
 - **Arquitectura SaaS**: Multi-negocio con suscripciones
 - **Tecnología moderna**: FastAPI + SQLAlchemy + SQLite
+- **🔔 Notificaciones en tiempo real**: Alertas automáticas de ventas
+- **🔐 Reset de contraseñas**: Gestión segura de credenciales
+- **📊 Dashboard inteligente**: KPIs y métricas en tiempo real
+- **🎨 UI/UX moderna**: Diseño intuitivo y profesional
 
 ## 🏗️ Arquitectura
 
@@ -25,7 +36,8 @@ Sistema de gestión de inventario y ventas tipo SaaS diseñado específicamente 
 │   ├── negocio.py
 │   ├── producto.py
 │   ├── venta.py
-│   └── plan.py
+│   ├── plan.py
+│   └── notificacion.py    # Sistema de notificaciones
 ├── templates/             # Templates HTML Jinja2
 ├── static/                # Archivos estáticos
 │   ├── css/styles.css
@@ -101,7 +113,8 @@ La aplicación estará disponible en: http://localhost:8000
 - Configurar planes de suscripción
 - Visualizar métricas globales
 - Generar backups de datos
-- Restablecer contraseñas
+- 🔄 **Resetear contraseñas de administradores**
+- 👁️ **Ver credenciales de acceso de clientes**
 
 **URLs principales**:
 - `/superadmin/dashboard`
@@ -117,6 +130,9 @@ La aplicación estará disponible en: http://localhost:8000
 - Gestión de empleados (vendedores)
 - Visualización de reportes
 - Exportación de datos
+- 🔔 **Recibir notificaciones de ventas en tiempo real**
+- 🔄 **Resetear contraseñas de vendedores**
+- 📊 **Dashboard con KPIs actualizados**
 
 **URLs principales**:
 - `/negocio/dashboard`
@@ -124,6 +140,7 @@ La aplicación estará disponible en: http://localhost:8000
 - `/negocio/ventas`
 - `/negocio/usuarios`
 - `/negocio/reportes`
+- `/negocio/notificaciones`
 
 ### 👤 Vendedor
 
@@ -132,6 +149,7 @@ La aplicación estará disponible en: http://localhost:8000
 - Registrar ventas
 - Ver historial personal
 - Escanear productos (simulado)
+- 🔔 **Generar notificaciones automáticas al vender**
 
 **URLs principales**:
 - `/vendedor/dashboard`
@@ -153,6 +171,47 @@ La aplicación estará disponible en: http://localhost:8000
 - Optimizado para celulares y tablets
 - Navegación horizontal en desktop
 - Componentes adaptables
+
+## 🔔 Sistema de Notificaciones
+
+### Características
+- **Tiempo Real**: Notificaciones automáticas al registrar ventas
+- **Control de Frecuencia**: Máximo 3 apariciones por notificación
+- **Intervalos Inteligentes**: 10-20 segundos entre repeticiones
+- **Auto-Detención**: Se detiene al marcar como leída
+- **Visual Atractivo**: Popups con animaciones suaves
+
+### Funcionamiento
+1. **Vendedor registra venta** → Notificación automática
+2. **Popup aparece** en dashboard del administrador
+3. **Máximo 3 veces** con intervalos aleatorios
+4. **Click en "Marcar como leída"** → Se detiene
+
+### Gestión
+- **Panel dedicado**: `/negocio/notificaciones`
+- **Marcar individual**: Cada notificación
+- **Marcar todas**: Limpieza masiva
+- **Contador visual**: Badge en navegación
+
+## 🔐 Sistema de Reset de Contraseñas
+
+### Para SuperAdmin
+- **Objetivo**: Administradores de negocio
+- **Ubicación**: Página detalle de negocio → "Credenciales de Acceso"
+- **Botón**: "🔄 Resetear Contraseña"
+- **Permisos**: Solo administradores de negocio
+
+### Para Administradores
+- **Objetivo**: Vendedores de su negocio
+- **Ubicación**: Página de usuarios → Tabla de vendedores
+- **Botón**: "🔄 Reset Contraseña"
+- **Permisos**: Solo vendedores del mismo negocio
+
+### Seguridad
+- **Generación automática**: Contraseñas de 8 caracteres seguras
+- **Hash SHA256**: Almacenamiento seguro
+- **Alerta inmediata**: Nueva contraseña mostrada al usuario
+- **Sin almacenamiento temporal**: Contraseña se muestra una sola vez
 
 ## 🗄️ Base de Datos
 
@@ -184,6 +243,12 @@ productos (
 ventas (
     id, negocio_id, producto_id, vendedor_id,
     cantidad_vendida, valor_total, fecha_venta
+)
+
+-- Notificaciones del sistema
+notificaciones (
+    id, negocio_id, vendedor_id, producto_id,
+    cantidad_vendida, mensaje, leida, fecha_creacion
 )
 ```
 
@@ -221,11 +286,17 @@ GET  /dashboard                 # Dashboard por rol
 GET  /superadmin/dashboard
 GET  /superadmin/negocios
 POST /superadmin/planes
+POST /superadmin/reset-password/{user_id}  # Reset contraseña admin
 
 # Admin
 GET  /negocio/dashboard
 GET  /negocio/inventario
 POST /negocio/ventas
+GET  /negocio/notificaciones              # Panel de notificaciones
+POST /negocio/notificaciones/{id}/marcar-leida
+POST /negocio/notificaciones/marcar-todas-leidas
+GET  /negocio/api/notificaciones          # API JSON notificaciones
+POST /negocio/reset-password/{user_id}    # Reset contraseña vendedor
 
 # Vendedor
 GET  /vendedor/dashboard
@@ -331,6 +402,44 @@ Para soporte técnico:
 - Crear issue en GitHub
 - Email: soporte@autostock.com
 - Documentación: https://docs.autostock.com
+
+---
+
+## 📋 Registro de Cambios (v2.0)
+
+### ✨ Nuevas Funcionalidades
+- **🔔 Sistema de Notificaciones en Tiempo Real**
+  - Alertas automáticas cuando se registran ventas
+  - Control inteligente de frecuencia (máx. 3 apariciones)
+  - Panel dedicado de gestión de notificaciones
+  - Popups con intervalos de 10-20 segundos
+
+- **🔄 Reset de Contraseñas**
+  - SuperAdmin puede resetear contraseñas de administradores
+  - Administradores pueden resetear contraseñas de vendedores
+  - Generación automática de contraseñas seguras
+  - Interfaz intuitiva con confirmaciones
+
+- **🎨 Mejoras de UI/UX**
+  - Navegación completamente responsive
+  - Diseño optimizado para móviles
+  - Contadores visuales de notificaciones
+  - Botones con estados diferenciados
+
+- **📊 Dashboard Mejorado**
+  - KPIs actualizados en tiempo real
+  - Navegación consistente en todas las páginas
+  - Experiencia móvil fluida
+
+### 🔧 Mejoras Técnicas
+- Nuevo modelo de datos para notificaciones
+- Sistema de polling inteligente para tiempo real
+- Endpoints REST adicionales para gestión
+- Seguridad mejorada en operaciones sensibles
+- Optimización de consultas de base de datos
+
+### 📅 Fecha de Lanzamiento
+**v2.0** - Octubre 2025
 
 ---
 
