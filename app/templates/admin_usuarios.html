@@ -121,6 +121,20 @@
                     <button class="btn btn-primary" onclick="showModal('user-modal')">Agregar Usuario</button>
                 </div>
 
+        <!-- Navigation -->
+        <nav class="dashboard-nav">
+            <a href="/negocio/dashboard" class="nav-link">Dashboard</a>
+            <a href="/negocio/inventario" class="nav-link">Inventario</a>
+            <a href="/negocio/ventas" class="nav-link">Ventas</a>
+            <a href="/negocio/usuarios" class="nav-link active">Usuarios</a>
+            <a href="/negocio/reportes" class="nav-link">Reportes</a>
+            <a href="/negocio/notificaciones" class="nav-link">Notificaciones
+                {% if notificaciones_no_leidas > 0 %}
+                <span class="notification-count">{{ notificaciones_no_leidas }}</span>
+                {% endif %}
+            </a>
+        </nav>
+
                 <div class="table-container">
                     <table class="data-table">
                         <thead>

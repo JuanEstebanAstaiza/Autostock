@@ -120,9 +120,16 @@ async def inventario(
     negocio_id = current_user.negocio_id
     productos = db.query(Producto).filter(Producto.negocio_id == negocio_id).all()
 
+    # Contador de notificaciones no leídas
+    notificaciones_no_leidas = db.query(Notificacion).filter(
+        Notificacion.negocio_id == negocio_id,
+        Notificacion.leida == False
+    ).count()
+
     return templates.TemplateResponse("admin_inventario.html", {
         "request": request,
-        "productos": productos
+        "productos": productos,
+        "notificaciones_no_leidas": notificaciones_no_leidas
     })
 
 @router.post("/inventario")
@@ -241,9 +248,16 @@ async def ventas(
         Venta.negocio_id == negocio_id
     ).order_by(Venta.fecha_venta.desc()).all()
 
+    # Contador de notificaciones no leídas
+    notificaciones_no_leidas = db.query(Notificacion).filter(
+        Notificacion.negocio_id == negocio_id,
+        Notificacion.leida == False
+    ).count()
+
     return templates.TemplateResponse("admin_ventas.html", {
         "request": request,
-        "ventas": ventas_list
+        "ventas": ventas_list,
+        "notificaciones_no_leidas": notificaciones_no_leidas
     })
 
 @router.post("/ventas")
@@ -315,9 +329,16 @@ async def usuarios(
         User.negocio_id == negocio_id
     ).all()
 
+    # Contador de notificaciones no leídas
+    notificaciones_no_leidas = db.query(Notificacion).filter(
+        Notificacion.negocio_id == negocio_id,
+        Notificacion.leida == False
+    ).count()
+
     return templates.TemplateResponse("admin_usuarios.html", {
         "request": request,
-        "usuarios": usuarios_list
+        "usuarios": usuarios_list,
+        "notificaciones_no_leidas": notificaciones_no_leidas
     })
 
 @router.post("/usuarios")
@@ -1560,11 +1581,18 @@ async def reportes(
         Producto.cantidad <= 10
     ).order_by(Producto.cantidad).all()
 
+    # Contador de notificaciones no leídas
+    notificaciones_no_leidas = db.query(Notificacion).filter(
+        Notificacion.negocio_id == negocio_id,
+        Notificacion.leida == False
+    ).count()
+
     return templates.TemplateResponse("admin_reportes.html", {
         "request": request,
         "ventas_por_dia": ventas_por_dia,
         "productos_top": productos_top,
-        "stock_bajo": stock_bajo
+        "stock_bajo": stock_bajo,
+        "notificaciones_no_leidas": notificaciones_no_leidas
     })
 
 @router.get("/reportes/export/{tipo}")

@@ -139,11 +139,45 @@
             background-color: #FF6B35;
             color: white;
             border-bottom-color: #E55A2B;
+            cursor: pointer;
         }
 
         .nav-link.logout:hover {
             background-color: #E55A2B;
             border-bottom-color: #D44E26;
+        }
+
+        /* Estilos para el botón de formulario */
+        form button.nav-link.logout {
+            border: none;
+            font: inherit;
+            padding: 1rem;
+            width: 100%;
+            text-align: inherit;
+            display: block;
+            white-space: nowrap;
+            position: relative;
+            transition: all 0.3s ease;
+            /* Mantener colores heredados de .nav-link.logout */
+            background-color: #FF6B35 !important;
+            color: white !important;
+            border-bottom-color: #E55A2B !important;
+        }
+
+        form button.nav-link.logout:focus {
+            outline: none;
+        }
+
+        /* Estilos para el formulario de logout */
+        .logout-form {
+            display: inline;
+            margin: 0;
+            padding: 0;
+        }
+
+        form button.nav-link.logout:hover {
+            background-color: #E55A2B !important;
+            border-bottom-color: #D44E26 !important;
         }
 
         .notification-count {
@@ -223,6 +257,17 @@
                 border-radius: 0;
             }
 
+            form button.nav-link.logout {
+                padding: 0.75rem;
+                font-size: 0.9rem;
+                flex: 1;
+                text-align: center;
+                min-width: 120px;
+                /* Mantener colores en móvil */
+                background-color: #FF6B35 !important;
+                color: white !important;
+            }
+
             .notification-item {
                 padding: 1rem;
             }
@@ -250,6 +295,15 @@
             .nav-link.logout {
                 margin-left: auto;
                 margin-right: 0;
+            }
+
+            form button.nav-link.logout {
+                padding: 0.5rem;
+                font-size: 0.8rem;
+                min-width: 100px;
+                /* Mantener colores en pantallas pequeñas */
+                background-color: #FF6B35 !important;
+                color: white !important;
             }
         }
 
@@ -298,7 +352,9 @@
                 <span class="notification-count">{{ notificaciones_no_leidas }}</span>
                 {% endif %}
             </a>
-            <a href="/logout" class="nav-link logout">Cerrar Sesión</a>
+            <form action="/logout" method="post" class="logout-form">
+                <button type="submit" class="nav-link logout">Cerrar Sesión</button>
+            </form>
         </nav>
 
         <!-- Main Content -->
@@ -375,6 +431,11 @@
                         markReadBtn.style.display = 'none';
                     }
 
+                    // Limpiar registro de popups si estamos en dashboard
+                    if (typeof markNotificationAsRead === 'function') {
+                        markNotificationAsRead(notificationId);
+                    }
+
                     // Actualizar el contador en el menú
                     updateNotificationCount();
                 }
@@ -409,6 +470,11 @@
                             markReadBtn.style.display = 'none';
                         }
                     });
+
+                    // Limpiar todos los registros de popups globalmente
+                    if (typeof window.clearNotificationPopups === 'function') {
+                        window.clearNotificationPopups();
+                    }
 
                     // Ocultar el botón de marcar todas como leídas
                     const markAllBtn = document.querySelector('.mark-all-read-btn');

@@ -261,10 +261,11 @@
 
         // ===== SISTEMA DE NOTIFICACIONES EN TIEMPO REAL =====
 
-        let lastNotificationCheck = Date.now();
         let notificationToast = null;
+        let shownNotifications = {}; // Registro de notificaciones mostradas {id: {count: X, lastShown: timestamp}}
+        let notificationInterval = null; // Intervalo para mostrar notificaciones periódicas
 
-        // Función para verificar notificaciones nuevas
+        // Función para verificar notificaciones y mostrar popups controlados
         function checkForNewNotifications() {
             fetch('/negocio/api/notificaciones')
                 .then(response => response.json())
@@ -275,21 +276,68 @@
                     // Actualizar contador en el menú
                     updateNotificationBadge(unreadNotifications.length);
 
-                    // Mostrar toast si hay notificaciones nuevas
-                    const newNotifications = notifications.filter(n => {
-                        const notificationTime = new Date(n.fecha_creacion).getTime();
-                        return notificationTime > lastNotificationCheck;
-                    });
-
-                    if (newNotifications.length > 0) {
-                        showNotificationToast(newNotifications[0]);
-                        lastNotificationCheck = Date.now();
-                    }
+                    // Procesar notificaciones no leídas
+                    processUnreadNotifications(unreadNotifications);
                 })
                 .catch(error => {
                     console.error('Error al verificar notificaciones:', error);
                 });
         }
+
+        // Función para procesar notificaciones no leídas con control de frecuencia
+        function processUnreadNotifications(unreadNotifications) {
+            const now = Date.now();
+
+            // Filtrar notificaciones que aún no han alcanzado el límite de 3 apariciones
+            const eligibleNotifications = unreadNotifications.filter(notification => {
+                const shown = shownNotifications[notification.id] || { count: 0, lastShown: 0 };
+
+                // Si ya se mostró 3 veces, no volver a mostrar
+                if (shown.count >= 3) {
+                    return false;
+                }
+
+                // Si es la primera vez o han pasado entre 10-20 segundos
+                const timeSinceLastShown = now - shown.lastShown;
+                const randomInterval = 10000 + Math.random() * 10000; // 10-20 segundos
+
+                return shown.count === 0 || timeSinceLastShown >= randomInterval;
+            });
+
+            // Mostrar la primera notificación elegible
+            if (eligibleNotifications.length > 0 && !notificationToast) {
+                const notification = eligibleNotifications[0];
+
+                // Registrar que se va a mostrar
+                if (!shownNotifications[notification.id]) {
+                    shownNotifications[notification.id] = { count: 0, lastShown: 0 };
+                }
+
+                shownNotifications[notification.id].count++;
+                shownNotifications[notification.id].lastShown = now;
+
+                showNotificationToast(notification);
+
+                // Limpiar registro si ya se mostró 3 veces
+                if (shownNotifications[notification.id].count >= 3) {
+                    console.log(`Notificación ${notification.id} alcanzó el límite de 3 apariciones`);
+                }
+            }
+        }
+
+        // Función para limpiar registros cuando se marca como leída una notificación
+        function markNotificationAsRead(notificationId) {
+            if (shownNotifications[notificationId]) {
+                delete shownNotifications[notificationId];
+                console.log(`Notificación ${notificationId} eliminada del registro de popups`);
+            }
+        }
+
+        // Función global para limpiar todos los registros de popups
+        window.clearNotificationPopups = function() {
+            shownNotifications = {};
+            console.log('Todos los registros de popups han sido limpiados globalmente');
+        };
 
         // Función para actualizar el contador de notificaciones en el menú
         function updateNotificationBadge(count) {
@@ -312,7 +360,22 @@
             }
         }
 
-        // Función para mostrar toast de notificación
+
+        // Función para formatear tiempo relativo
+        function formatTimeAgo(dateString) {
+            const date = new Date(dateString);
+            const now = new Date();
+            const diffMs = now - date;
+            const diffMins = Math.floor(diffMs / 60000);
+            const diffHours = Math.floor(diffMins / 60);
+
+            if (diffMins < 1) return 'Ahora mismo';
+            if (diffMins < 60) return `Hace ${diffMins} min`;
+            if (diffHours < 24) return `Hace ${diffHours} h`;
+            return date.toLocaleDateString('es-ES');
+        }
+
+        // Función para mostrar toast con ID de notificación
         function showNotificationToast(notification) {
             // Remover toast anterior si existe
             if (notificationToast) {
@@ -322,6 +385,7 @@
             // Crear nuevo toast
             const toast = document.createElement('div');
             toast.className = 'notification-toast';
+            toast.setAttribute('data-notification-id', notification.id);
             toast.innerHTML = `
                 <div class="toast-content">
                     <div class="toast-icon">🔔</div>
@@ -352,6 +416,7 @@
         // Función para ocultar toast
         function hideNotificationToast() {
             if (notificationToast) {
+                const notificationId = notificationToast.getAttribute('data-notification-id');
                 notificationToast.classList.remove('show');
                 setTimeout(() => {
                     if (notificationToast) {
@@ -362,24 +427,10 @@
             }
         }
 
-        // Función para formatear tiempo relativo
-        function formatTimeAgo(dateString) {
-            const date = new Date(dateString);
-            const now = new Date();
-            const diffMs = now - date;
-            const diffMins = Math.floor(diffMs / 60000);
-            const diffHours = Math.floor(diffMins / 60);
-
-            if (diffMins < 1) return 'Ahora mismo';
-            if (diffMins < 60) return `Hace ${diffMins} min`;
-            if (diffHours < 24) return `Hace ${diffHours} h`;
-            return date.toLocaleDateString('es-ES');
-        }
-
         // Iniciar verificación periódica de notificaciones
         document.addEventListener('DOMContentLoaded', function() {
-            // Verificar notificaciones cada 10 segundos
-            setInterval(checkForNewNotifications, 10000);
+            // Verificar notificaciones cada 5 segundos para mejor control de intervalos
+            setInterval(checkForNewNotifications, 5000);
 
             // Primera verificación después de 2 segundos
             setTimeout(checkForNewNotifications, 2000);

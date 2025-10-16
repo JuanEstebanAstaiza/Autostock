@@ -53,6 +53,50 @@
             line-height: 1.5;
         }
 
+        /* Estilos para navegación */
+        .dashboard-nav {
+            background-color: #E0E3E7;
+            border-bottom: 1px solid #1A2238;
+            overflow-x: auto;
+            display: flex;
+            gap: 0;
+        }
+
+        .nav-link {
+            display: block;
+            padding: 1rem;
+            text-decoration: none;
+            color: #1A2238;
+            font-weight: 500;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+            position: relative;
+        }
+
+        .nav-link:hover,
+        .nav-link.active {
+            background-color: rgba(26, 34, 56, 0.1);
+            border-bottom-color: #1A2238;
+        }
+
+        .notification-count {
+            background: #FF6B35;
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            margin-left: 0.5rem;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.7; }
+            100% { opacity: 1; }
+        }
+
         .reporte-links {
             display: flex;
             flex-wrap: wrap;
@@ -208,6 +252,11 @@
             <a href="/negocio/ventas" class="nav-link">Ventas</a>
             <a href="/negocio/usuarios" class="nav-link">Usuarios</a>
             <a href="/negocio/reportes" class="nav-link active">Reportes</a>
+            <a href="/negocio/notificaciones" class="nav-link">Notificaciones
+                {% if notificaciones_no_leidas > 0 %}
+                <span class="notification-count">{{ notificaciones_no_leidas }}</span>
+                {% endif %}
+            </a>
         </nav>
 
         <!-- Main Content -->

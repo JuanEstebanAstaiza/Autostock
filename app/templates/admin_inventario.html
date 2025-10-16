@@ -132,6 +132,11 @@
             <a href="/negocio/ventas" class="nav-link">Ventas</a>
             <a href="/negocio/usuarios" class="nav-link">Usuarios</a>
             <a href="/negocio/reportes" class="nav-link">Reportes</a>
+            <a href="/negocio/notificaciones" class="nav-link">Notificaciones
+                {% if notificaciones_no_leidas > 0 %}
+                <span class="notification-count">{{ notificaciones_no_leidas }}</span>
+                {% endif %}
+            </a>
         </nav>
 
         <!-- Main Content -->
