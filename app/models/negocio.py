@@ -21,6 +21,7 @@ class Negocio(Base):
     usuarios = relationship("User", back_populates="negocio")
     productos = relationship("Producto", back_populates="negocio")
     ventas = relationship("Venta", back_populates="negocio")
+    notificaciones = relationship("Notificacion", back_populates="negocio")
 
     def __repr__(self):
         return f"<Negocio(id={self.id}, nombre='{self.nombre_negocio}', propietario='{self.propietario}')>"

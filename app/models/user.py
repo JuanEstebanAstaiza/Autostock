@@ -17,6 +17,7 @@ class User(Base):
     # Relaciones
     negocio = relationship("Negocio", back_populates="usuarios")
     ventas = relationship("Venta", back_populates="vendedor")
+    notificaciones_enviadas = relationship("Notificacion", back_populates="vendedor")
 
     def __repr__(self):
         return f"<User(id={self.id}, nombre_usuario='{self.nombre_usuario}', rol='{self.rol}')>"

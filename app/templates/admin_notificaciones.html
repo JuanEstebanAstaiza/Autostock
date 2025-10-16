@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Autostock - Admin - Notificaciones</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <style>
+        /* Estilos específicos para notificaciones */
+        .notification-item {
+            background: white;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            border-left: 4px solid #3AB795;
+            transition: all 0.3s ease;
+        }
+
+        .notification-item.unread {
+            border-left-color: #FF6B35;
+            background: linear-gradient(135deg, #FFF8F6 0%, white 100%);
+        }
+
+        .notification-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+
+        .notification-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 0.5rem;
+        }
+
+        .notification-message {
+            font-size: 1.1rem;
+            color: #1A2238;
+            margin-bottom: 0.5rem;
+            line-height: 1.4;
+        }
+
+        .notification-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.85rem;
+            color: #6C757D;
+        }
+
+        .notification-time {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .mark-read-btn {
+            background: #3AB795;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: background 0.3s ease;
+        }
+
+        .mark-read-btn:hover {
+            background: #2A9678;
+        }
+
+        .mark-all-read-btn {
+            background: #FF6B35;
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            margin-bottom: 2rem;
+            transition: background 0.3s ease;
+        }
+
+        .mark-all-read-btn:hover {
+            background: #E55A2B;
+        }
+
+        .no-notifications {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: #6C757D;
+        }
+
+        .no-notifications .icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        .notification-count {
+            background: #FF6B35;
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            margin-left: 1rem;
+        }
+
+        /* Navegación responsive */
+        .dashboard-nav {
+            background-color: #E0E3E7;
+            border-bottom: 1px solid #1A2238;
+            overflow-x: auto;
+            display: flex;
+            gap: 0;
+        }
+
+        .nav-link {
+            display: block;
+            padding: 1rem;
+            text-decoration: none;
+            color: #1A2238;
+            font-weight: 500;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+            position: relative;
+        }
+
+        .nav-link:hover,
+        .nav-link.active {
+            background-color: rgba(26, 34, 56, 0.1);
+            border-bottom-color: #1A2238;
+        }
+
+        .nav-link.logout {
+            background-color: #FF6B35;
+            color: white;
+            border-bottom-color: #E55A2B;
+        }
+
+        .nav-link.logout:hover {
+            background-color: #E55A2B;
+            border-bottom-color: #D44E26;
+        }
+
+        .notification-count {
+            background: #FF6B35;
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            margin-left: 0.5rem;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.7; }
+            100% { opacity: 1; }
+        }
+
+        /* Header responsive */
+        .dashboard-header {
+            background-color: #1A2238;
+            color: white;
+            padding: 1rem;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .user-info span {
+            font-weight: 500;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
+
+            .dashboard-nav {
+                flex-wrap: wrap;
+            }
+
+            .nav-link {
+                padding: 0.75rem;
+                font-size: 0.9rem;
+                flex: 1;
+                text-align: center;
+                min-width: 120px;
+            }
+
+            .notification-count {
+                margin-left: 0.25rem;
+                padding: 0.2rem 0.5rem;
+                font-size: 0.7rem;
+            }
+
+            .nav-link.logout {
+                margin-left: auto;
+                align-self: stretch;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border-radius: 0;
+            }
+
+            .notification-item {
+                padding: 1rem;
+            }
+
+            .notification-message {
+                font-size: 1rem;
+            }
+
+            .mark-all-read-btn {
+                width: 100%;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .nav-link {
+                padding: 0.5rem;
+                font-size: 0.8rem;
+                min-width: 100px;
+            }
+
+            .dashboard-nav {
+                justify-content: center;
+            }
+
+            .nav-link.logout {
+                margin-left: auto;
+                margin-right: 0;
+            }
+        }
+
+        /* Estilos adicionales para mejor usabilidad móvil */
+        @media (max-width: 768px) {
+            .dashboard-nav::-webkit-scrollbar {
+                height: 4px;
+            }
+
+            .dashboard-nav::-webkit-scrollbar-track {
+                background: #E0E3E7;
+            }
+
+            .dashboard-nav::-webkit-scrollbar-thumb {
+                background: #1A2238;
+                border-radius: 2px;
+            }
+
+            .dashboard-nav::-webkit-scrollbar-thumb:hover {
+                background: #2A3A56;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Header -->
+        <header class="dashboard-header admin-header">
+            <div class="header-content">
+                <h1>Autostock - Administrador</h1>
+                <div class="user-info">
+                    <span>Notificaciones</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Navigation -->
+        <nav class="dashboard-nav">
+            <a href="/negocio/dashboard" class="nav-link">Dashboard</a>
+            <a href="/negocio/inventario" class="nav-link">Inventario</a>
+            <a href="/negocio/ventas" class="nav-link">Ventas</a>
+            <a href="/negocio/usuarios" class="nav-link">Usuarios</a>
+            <a href="/negocio/reportes" class="nav-link">Reportes</a>
+            <a href="/negocio/notificaciones" class="nav-link active">Notificaciones
+                {% if notificaciones_no_leidas > 0 %}
+                <span class="notification-count">{{ notificaciones_no_leidas }}</span>
+                {% endif %}
+            </a>
+            <a href="/logout" class="nav-link logout">Cerrar Sesión</a>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="dashboard-main">
+            <div class="content-section">
+                <div class="section-header">
+                    <h2>🔔 Notificaciones de Ventas</h2>
+                    {% if notificaciones_no_leidas > 0 %}
+                    <button class="mark-all-read-btn" onclick="marcarTodasLeidas()">
+                        Marcar Todas como Leídas
+                    </button>
+                    {% endif %}
+                </div>
+
+                {% if notificaciones %}
+                <div class="notifications-list">
+                    {% for notif in notificaciones %}
+                    <div class="notification-item {% if not notif.leida %}unread{% endif %}" id="notification-{{ notif.id }}">
+                        <div class="notification-header">
+                            <div class="notification-message">
+                                {{ notif.mensaje }}
+                            </div>
+                            {% if not notif.leida %}
+                            <button class="mark-read-btn" onclick="marcarLeida({{ notif.id }})">
+                                ✓ Marcar Leída
+                            </button>
+                            {% endif %}
+                        </div>
+                        <div class="notification-meta">
+                            <div class="notification-time">
+                                <span>🕒</span>
+                                <span>{{ notif.fecha_creacion.strftime('%d/%m/%Y %H:%M') }}</span>
+                            </div>
+                            <div class="notification-details">
+                                <span>Vendedor: {{ notif.vendedor.nombre_usuario }}</span> |
+                                <span>Producto: {{ notif.producto.nombre }}</span> |
+                                <span>Cantidad: {{ notif.cantidad_vendida }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="no-notifications">
+                    <div class="icon">🔔</div>
+                    <h3>No hay notificaciones</h3>
+                    <p>Las notificaciones de ventas aparecerán aquí cuando los vendedores registren ventas.</p>
+                </div>
+                {% endif %}
+            </div>
+        </main>
+    </div>
+
+    <script src="/static/js/main.js"></script>
+    <script>
+        // Función para marcar una notificación como leída
+        function marcarLeida(notificationId) {
+            fetch(`/negocio/notificaciones/${notificationId}/marcar-leida`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Actualizar la interfaz
+                    const notificationElement = document.getElementById(`notification-${notificationId}`);
+                    notificationElement.classList.remove('unread');
+
+                    // Ocultar el botón de marcar como leída
+                    const markReadBtn = notificationElement.querySelector('.mark-read-btn');
+                    if (markReadBtn) {
+                        markReadBtn.style.display = 'none';
+                    }
+
+                    // Actualizar el contador en el menú
+                    updateNotificationCount();
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error al marcar la notificación como leída');
+            });
+        }
+
+        // Función para marcar todas las notificaciones como leídas
+        function marcarTodasLeidas() {
+            if (!confirm('¿Estás seguro de marcar todas las notificaciones como leídas?')) {
+                return;
+            }
+
+            fetch('/negocio/notificaciones/marcar-todas-leidas', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Actualizar todas las notificaciones en la interfaz
+                    const unreadNotifications = document.querySelectorAll('.notification-item.unread');
+                    unreadNotifications.forEach(notification => {
+                        notification.classList.remove('unread');
+                        const markReadBtn = notification.querySelector('.mark-read-btn');
+                        if (markReadBtn) {
+                            markReadBtn.style.display = 'none';
+                        }
+                    });
+
+                    // Ocultar el botón de marcar todas como leídas
+                    const markAllBtn = document.querySelector('.mark-all-read-btn');
+                    if (markAllBtn) {
+                        markAllBtn.style.display = 'none';
+                    }
+
+                    // Actualizar el contador en el menú
+                    updateNotificationCount();
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error al marcar todas las notificaciones como leídas');
+            });
+        }
+
+        // Función para actualizar el contador de notificaciones en el menú
+        function updateNotificationCount() {
+            fetch('/negocio/api/notificaciones')
+                .then(response => response.json())
+                .then(data => {
+                    const unreadCount = data.notificaciones.filter(n => !n.leida).length;
+                    const countElement = document.querySelector('.notification-count');
+
+                    if (unreadCount > 0) {
+                        if (countElement) {
+                            countElement.textContent = unreadCount;
+                        } else {
+                            // Crear el contador si no existe
+                            const notificationsLink = document.querySelector('a[href="/negocio/notificaciones"]');
+                            if (notificationsLink) {
+                                const countSpan = document.createElement('span');
+                                countSpan.className = 'notification-count';
+                                countSpan.textContent = unreadCount;
+                                notificationsLink.appendChild(countSpan);
+                            }
+                        }
+                    } else {
+                        if (countElement) {
+                            countElement.remove();
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('Error al actualizar contador:', error);
+                });
+        }
+
+        // Auto-refresh cada 30 segundos para mantener las notificaciones actualizadas
+        setInterval(() => {
+            updateNotificationCount();
+        }, 30000);
+    </script>
+</body>
+</html>

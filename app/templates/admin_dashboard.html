@@ -44,6 +44,23 @@
             margin: 0 auto;
         }
 
+        .notification-count {
+            background: #FF6B35;
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            margin-left: 0.5rem;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.7; }
+            100% { opacity: 1; }
+        }
+
         .action-button {
             display: flex;
             align-items: center;
@@ -161,6 +178,11 @@
             <a href="/negocio/ventas" class="nav-link">Ventas</a>
             <a href="/negocio/usuarios" class="nav-link">Usuarios</a>
             <a href="/negocio/reportes" class="nav-link">Reportes</a>
+            <a href="/negocio/notificaciones" class="nav-link">Notificaciones
+                {% if notificaciones_no_leidas > 0 %}
+                <span class="notification-count">{{ notificaciones_no_leidas }}</span>
+                {% endif %}
+            </a>
         </nav>
 
         <!-- Main Content -->
@@ -236,6 +258,231 @@
                 });
             }
         });
+
+        // ===== SISTEMA DE NOTIFICACIONES EN TIEMPO REAL =====
+
+        let lastNotificationCheck = Date.now();
+        let notificationToast = null;
+
+        // Función para verificar notificaciones nuevas
+        function checkForNewNotifications() {
+            fetch('/negocio/api/notificaciones')
+                .then(response => response.json())
+                .then(data => {
+                    const notifications = data.notificaciones;
+                    const unreadNotifications = notifications.filter(n => !n.leida);
+
+                    // Actualizar contador en el menú
+                    updateNotificationBadge(unreadNotifications.length);
+
+                    // Mostrar toast si hay notificaciones nuevas
+                    const newNotifications = notifications.filter(n => {
+                        const notificationTime = new Date(n.fecha_creacion).getTime();
+                        return notificationTime > lastNotificationCheck;
+                    });
+
+                    if (newNotifications.length > 0) {
+                        showNotificationToast(newNotifications[0]);
+                        lastNotificationCheck = Date.now();
+                    }
+                })
+                .catch(error => {
+                    console.error('Error al verificar notificaciones:', error);
+                });
+        }
+
+        // Función para actualizar el contador de notificaciones en el menú
+        function updateNotificationBadge(count) {
+            const existingBadge = document.querySelector('.notification-count');
+            const notificationsLink = document.querySelector('a[href="/negocio/notificaciones"]');
+
+            if (count > 0) {
+                if (existingBadge) {
+                    existingBadge.textContent = count;
+                } else if (notificationsLink) {
+                    const badge = document.createElement('span');
+                    badge.className = 'notification-count';
+                    badge.textContent = count;
+                    notificationsLink.appendChild(badge);
+                }
+            } else {
+                if (existingBadge) {
+                    existingBadge.remove();
+                }
+            }
+        }
+
+        // Función para mostrar toast de notificación
+        function showNotificationToast(notification) {
+            // Remover toast anterior si existe
+            if (notificationToast) {
+                notificationToast.remove();
+            }
+
+            // Crear nuevo toast
+            const toast = document.createElement('div');
+            toast.className = 'notification-toast';
+            toast.innerHTML = `
+                <div class="toast-content">
+                    <div class="toast-icon">🔔</div>
+                    <div class="toast-message">
+                        <strong>${notification.mensaje}</strong>
+                        <div class="toast-time">${formatTimeAgo(notification.fecha_creacion)}</div>
+                    </div>
+                    <button class="toast-close" onclick="hideNotificationToast()">&times;</button>
+                </div>
+            `;
+
+            document.body.appendChild(toast);
+            notificationToast = toast;
+
+            // Auto-ocultar después de 5 segundos
+            setTimeout(() => {
+                if (notificationToast === toast) {
+                    hideNotificationToast();
+                }
+            }, 5000);
+
+            // Animación de entrada
+            setTimeout(() => {
+                toast.classList.add('show');
+            }, 100);
+        }
+
+        // Función para ocultar toast
+        function hideNotificationToast() {
+            if (notificationToast) {
+                notificationToast.classList.remove('show');
+                setTimeout(() => {
+                    if (notificationToast) {
+                        notificationToast.remove();
+                        notificationToast = null;
+                    }
+                }, 300);
+            }
+        }
+
+        // Función para formatear tiempo relativo
+        function formatTimeAgo(dateString) {
+            const date = new Date(dateString);
+            const now = new Date();
+            const diffMs = now - date;
+            const diffMins = Math.floor(diffMs / 60000);
+            const diffHours = Math.floor(diffMins / 60);
+
+            if (diffMins < 1) return 'Ahora mismo';
+            if (diffMins < 60) return `Hace ${diffMins} min`;
+            if (diffHours < 24) return `Hace ${diffHours} h`;
+            return date.toLocaleDateString('es-ES');
+        }
+
+        // Iniciar verificación periódica de notificaciones
+        document.addEventListener('DOMContentLoaded', function() {
+            // Verificar notificaciones cada 10 segundos
+            setInterval(checkForNewNotifications, 10000);
+
+            // Primera verificación después de 2 segundos
+            setTimeout(checkForNewNotifications, 2000);
+        });
+
+        // Estilos para notificaciones toast
+        const toastStyle = document.createElement('style');
+        toastStyle.textContent = `
+            .notification-toast {
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                max-width: 400px;
+                background: white;
+                border-radius: 12px;
+                box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+                border-left: 4px solid #3AB795;
+                z-index: 10000;
+                opacity: 0;
+                transform: translateX(100%);
+                transition: all 0.3s ease;
+                overflow: hidden;
+            }
+
+            .notification-toast.show {
+                opacity: 1;
+                transform: translateX(0);
+            }
+
+            .toast-content {
+                display: flex;
+                align-items: center;
+                padding: 1rem 1.25rem;
+                gap: 1rem;
+            }
+
+            .toast-icon {
+                font-size: 1.5rem;
+                color: #3AB795;
+                flex-shrink: 0;
+            }
+
+            .toast-message {
+                flex: 1;
+                font-size: 0.95rem;
+                line-height: 1.4;
+            }
+
+            .toast-message strong {
+                color: #1A2238;
+                display: block;
+                margin-bottom: 0.25rem;
+            }
+
+            .toast-time {
+                font-size: 0.8rem;
+                color: #6C757D;
+            }
+
+            .toast-close {
+                background: none;
+                border: none;
+                font-size: 1.5rem;
+                color: #6C757D;
+                cursor: pointer;
+                padding: 0;
+                width: 24px;
+                height: 24px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border-radius: 50%;
+                transition: background 0.2s ease;
+                flex-shrink: 0;
+            }
+
+            .toast-close:hover {
+                background: #F8F9FA;
+                color: #1A2238;
+            }
+
+            @media (max-width: 768px) {
+                .notification-toast {
+                    left: 10px;
+                    right: 10px;
+                    max-width: none;
+                }
+
+                .toast-content {
+                    padding: 0.875rem 1rem;
+                    gap: 0.75rem;
+                }
+
+                .toast-icon {
+                    font-size: 1.25rem;
+                }
+
+                .toast-message {
+                    font-size: 0.9rem;
+                }
+            }
+        `;
+        document.head.appendChild(toastStyle);
 
         // Animación fadeInUp para móviles
         const style = document.createElement('style');

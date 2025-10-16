@@ -26,3 +26,4 @@ from .negocio import Negocio
 from .plan import Plan
 from .producto import Producto
 from .venta import Venta
+from .notificacion import Notificacion

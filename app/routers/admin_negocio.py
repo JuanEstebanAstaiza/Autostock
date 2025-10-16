@@ -20,6 +20,7 @@ from models.negocio import Negocio
 from models.plan import Plan
 from models.producto import Producto
 from models.venta import Venta
+from models.notificacion import Notificacion
 
 router = APIRouter(prefix="/negocio")
 templates = Jinja2Templates(directory="templates")
@@ -91,6 +92,12 @@ async def dashboard(
         Venta.negocio_id == negocio_id
     ).order_by(Venta.fecha_venta.desc()).limit(10).all()
 
+    # Contador de notificaciones no leídas
+    notificaciones_no_leidas = db.query(Notificacion).filter(
+        Notificacion.negocio_id == negocio_id,
+        Notificacion.leida == False
+    ).count()
+
     return templates.TemplateResponse("admin_dashboard.html", {
         "request": request,
         "total_productos": total_productos,
@@ -98,7 +105,8 @@ async def dashboard(
         "ventas_hoy": f"{ventas_hoy:.2f}",
         "ventas_mes": f"{ventas_mes:.2f}",
         "productos_top": productos_top,
-        "ventas_recientes": ventas_recientes
+        "ventas_recientes": ventas_recientes,
+        "notificaciones_no_leidas": notificaciones_no_leidas
     })
 
 # Gestión de Inventario
@@ -1606,3 +1614,96 @@ async def exportar_reporte(
         raise HTTPException(status_code=400, detail="Tipo de reporte no válido")
 
     return FileResponse(filename, media_type='application/octet-stream', filename=filename)
+
+# ===== ENDPOINTS DE NOTIFICACIONES =====
+
+@router.get("/notificaciones")
+async def get_notificaciones(
+    request: Request,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_admin_from_cookie)
+):
+    """Obtener todas las notificaciones del negocio del administrador"""
+    negocio_id = current_user.negocio_id
+
+    # Obtener notificaciones no leídas primero, luego todas ordenadas por fecha descendente
+    notificaciones_no_leidas = db.query(Notificacion).filter(
+        Notificacion.negocio_id == negocio_id,
+        Notificacion.leida == False
+    ).order_by(desc(Notificacion.fecha_creacion)).all()
+
+    notificaciones_leidas = db.query(Notificacion).filter(
+        Notificacion.negocio_id == negocio_id,
+        Notificacion.leida == True
+    ).order_by(desc(Notificacion.fecha_creacion)).limit(20).all()
+
+    # Combinar y ordenar
+    notificaciones = notificaciones_no_leidas + notificaciones_leidas
+
+    return templates.TemplateResponse("admin_notificaciones.html", {
+        "request": request,
+        "notificaciones": notificaciones,
+        "notificaciones_no_leidas": len(notificaciones_no_leidas)
+    })
+
+@router.post("/notificaciones/{notificacion_id}/marcar-leida")
+async def marcar_notificacion_leida(
+    notificacion_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_admin_from_cookie)
+):
+    """Marcar una notificación como leída"""
+    notificacion = db.query(Notificacion).filter(
+        Notificacion.id == notificacion_id,
+        Notificacion.negocio_id == current_user.negocio_id
+    ).first()
+
+    if not notificacion:
+        raise HTTPException(status_code=404, detail="Notificación no encontrada")
+
+    notificacion.leida = True
+    db.commit()
+
+    return {"success": True, "message": "Notificación marcada como leída"}
+
+@router.post("/notificaciones/marcar-todas-leidas")
+async def marcar_todas_notificaciones_leidas(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_admin_from_cookie)
+):
+    """Marcar todas las notificaciones del negocio como leídas"""
+    db.query(Notificacion).filter(
+        Notificacion.negocio_id == current_user.negocio_id,
+        Notificacion.leida == False
+    ).update({"leida": True})
+
+    db.commit()
+
+    return {"success": True, "message": "Todas las notificaciones han sido marcadas como leídas"}
+
+@router.get("/api/notificaciones")
+async def get_notificaciones_api(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_admin_from_cookie)
+):
+    """API para obtener notificaciones en formato JSON (para AJAX/polling)"""
+    negocio_id = current_user.negocio_id
+
+    notificaciones = db.query(Notificacion).filter(
+        Notificacion.negocio_id == negocio_id
+    ).order_by(desc(Notificacion.fecha_creacion)).limit(50).all()
+
+    # Convertir a diccionario con información adicional
+    notificaciones_data = []
+    for notif in notificaciones:
+        notificaciones_data.append({
+            "id": notif.id,
+            "mensaje": notif.mensaje,
+            "leida": notif.leida,
+            "fecha_creacion": notif.fecha_creacion.isoformat(),
+            "vendedor": notif.vendedor.nombre_usuario,
+            "producto": notif.producto.nombre,
+            "cantidad": notif.cantidad_vendida
+        })
+
+    return {"notificaciones": notificaciones_data}

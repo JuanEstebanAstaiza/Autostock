@@ -17,6 +17,7 @@ from models.user import User
 from models.negocio import Negocio
 from models.producto import Producto
 from models.venta import Venta
+from models.notificacion import Notificacion
 
 router = APIRouter(prefix="/vendedor")
 templates = Jinja2Templates(directory="templates")
@@ -195,8 +196,18 @@ async def registrar_venta(
     # Actualizar stock
     producto.cantidad -= cantidad
 
-    db.commit()
+    # Crear notificación para el administrador del negocio
+    mensaje_notificacion = f"{current_user.nombre_usuario} vendió {cantidad} {producto.nombre}"
+    notificacion = Notificacion(
+        negocio_id=negocio_id,
+        vendedor_id=current_user.id,
+        producto_id=producto_id,
+        cantidad_vendida=cantidad,
+        mensaje=mensaje_notificacion
+    )
+    db.add(notificacion)
 
+    db.commit()
 
     return RedirectResponse(url="/vendedor/dashboard", status_code=302)
 

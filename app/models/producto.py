@@ -19,6 +19,7 @@ class Producto(Base):
     # Relaciones
     negocio = relationship("Negocio", back_populates="productos")
     ventas = relationship("Venta", back_populates="producto")
+    notificaciones = relationship("Notificacion", back_populates="producto")
 
     def __repr__(self):
         return f"<Producto(id={self.id}, nombre='{self.nombre}', codigo='{self.codigo}', cantidad={self.cantidad})>"
