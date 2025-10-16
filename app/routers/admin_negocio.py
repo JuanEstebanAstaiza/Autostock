@@ -12,7 +12,7 @@ from typing import List
 import csv
 import json
 from datetime import datetime, timedelta, timezone
-from auth import require_admin_from_cookie, require_same_business_from_cookie, get_password_hash
+from auth import require_admin_from_cookie, require_same_business_from_cookie, get_password_hash, generate_random_password
 
 from models import get_db
 from models.user import User
@@ -1735,3 +1735,38 @@ async def get_notificaciones_api(
         })
 
     return {"notificaciones": notificaciones_data}
+
+# ===== ENDPOINTS DE GESTIÓN DE CONTRASEÑAS =====
+
+@router.post("/reset-password/{user_id}")
+async def reset_user_password_negocio(
+    user_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_admin_from_cookie)
+):
+    """Resetear contraseña de un usuario del negocio (solo vendedores y usuarios del mismo negocio)"""
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="Usuario no encontrado")
+
+    # Verificar que el usuario pertenece al mismo negocio
+    if user.negocio_id != current_user.negocio_id:
+        raise HTTPException(status_code=403, detail="No tienes permisos para resetear esta contraseña")
+
+    # Solo permitir resetear contraseñas de vendedores (no otros admins)
+    if user.rol not in ["vendedor"]:
+        raise HTTPException(status_code=400, detail="Solo se pueden resetear contraseñas de vendedores")
+
+    # Generar nueva contraseña
+    new_password = generate_random_password()
+    hashed_password = get_password_hash(new_password)
+
+    # Actualizar contraseña
+    user.contraseña = hashed_password
+    db.commit()
+
+    return {
+        "message": f"Contraseña reseteada exitosamente para {user.nombre_usuario}",
+        "new_password": new_password,
+        "user": user.nombre_usuario
+    }

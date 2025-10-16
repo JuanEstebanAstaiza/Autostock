@@ -166,9 +166,9 @@
                                             {{ 'Desactivar' if usuario.estado == 'activo' else 'Activar' }}
                                         </button>
                                     </form>
-                                    <form action="/negocio/usuarios/{{ usuario.id }}/reset-password" method="post" style="display: inline;">
-                                        <button type="submit" class="btn btn-sm btn-secondary">Reset Password</button>
-                                    </form>
+                                    <button class="btn btn-sm btn-warning" onclick="resetPassword({{ usuario.id }}, '{{ usuario.nombre_usuario }}')" {% if usuario.rol != 'vendedor' %}disabled title="Solo se pueden resetear contraseñas de vendedores"{% endif %}">
+                                        🔄 Reset Contraseña
+                                    </button>
                                 </td>
                             </tr>
                             {% endfor %}
@@ -224,6 +224,32 @@
                     modal.style.display = 'none';
                 }
             }
+        }
+
+        function resetPassword(userId, username) {
+            if (!confirm(`¿Estás seguro de resetear la contraseña de ${username}?\n\nSe generará una nueva contraseña aleatoria.`)) {
+                return;
+            }
+
+            fetch(`/negocio/reset-password/${userId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.message) {
+                    alert(`✅ ${data.message}\n\n📝 Nueva contraseña: ${data.new_password}\n\n⚠️ IMPORTANTE: Anota esta contraseña y compártala de forma segura con el usuario.`);
+                    console.log(`Nueva contraseña para ${data.user}: ${data.new_password}`);
+                } else {
+                    alert('❌ Error al resetear la contraseña');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('❌ Error al resetear la contraseña');
+            });
         }
     </script>
 </body>

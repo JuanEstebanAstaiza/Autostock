@@ -15,7 +15,7 @@ import json
 from datetime import datetime, timedelta
 
 from models import get_db
-from auth import require_superadmin_from_cookie, get_password_hash
+from auth import require_superadmin_from_cookie, get_password_hash, generate_random_password
 from models.user import User
 from models.negocio import Negocio
 from models.plan import Plan
@@ -377,3 +377,34 @@ async def eliminar_negocio_suspendido(
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=f"Error al eliminar negocio: {str(e)}")
+
+# ===== ENDPOINTS DE GESTIÓN DE CONTRASEÑAS =====
+
+@router.post("/reset-password/{user_id}")
+async def reset_user_password(
+    user_id: int,
+    db: Session = Depends(get_db),
+    _: User = Depends(require_superadmin_from_cookie)
+):
+    """Resetear contraseña de un usuario (solo administradores de negocio)"""
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="Usuario no encontrado")
+
+    # Solo permitir resetear contraseñas de administradores de negocio
+    if user.rol != "admin":
+        raise HTTPException(status_code=400, detail="Solo se pueden resetear contraseñas de administradores de negocio")
+
+    # Generar nueva contraseña
+    new_password = generate_random_password()
+    hashed_password = get_password_hash(new_password)
+
+    # Actualizar contraseña
+    user.contraseña = hashed_password
+    db.commit()
+
+    return {
+        "message": f"Contraseña reseteada exitosamente para {user.nombre_usuario}",
+        "new_password": new_password,
+        "user": user.nombre_usuario
+    }

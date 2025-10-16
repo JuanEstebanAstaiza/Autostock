@@ -10,6 +10,8 @@ from jose import JWTError, jwt
 from passlib.context import CryptContext
 from sqlalchemy.orm import Session
 import hashlib
+import secrets
+import string
 
 from models import get_db
 from models.user import User
@@ -32,6 +34,12 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
 def get_password_hash(password: str) -> str:
     """Crear hash de contraseña usando SHA256"""
     return hashlib.sha256(password.encode()).hexdigest()
+
+def generate_random_password(length: int = 8) -> str:
+    """Generar una contraseña aleatoria segura"""
+    # Caracteres permitidos: letras, números y símbolos básicos
+    characters = string.ascii_letters + string.digits + "!@#$%^&*"
+    return ''.join(secrets.choice(characters) for _ in range(length))
 
 def authenticate_user(db: Session, username: str, password: str) -> Optional[User]:
     """Autenticar usuario por nombre de usuario y contraseña"""

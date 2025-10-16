@@ -89,6 +89,13 @@
                                         vendedor123
                                     {% endif %}
                                 </p>
+                                {% if usuario.rol == 'admin' %}
+                                <div class="credential-actions">
+                                    <button class="btn btn-sm btn-warning" onclick="resetPassword({{ usuario.id }}, '{{ usuario.nombre_usuario }}')">
+                                        🔄 Resetear Contraseña
+                                    </button>
+                                </div>
+                                {% endif %}
                             </div>
                             {% endfor %}
                         </div>
@@ -188,5 +195,32 @@
     </style>
 
     <script src="/static/js/main.js"></script>
+    <script>
+        function resetPassword(userId, username) {
+            if (!confirm(`¿Estás seguro de resetear la contraseña de ${username}?\n\nSe generará una nueva contraseña aleatoria.`)) {
+                return;
+            }
+
+            fetch(`/superadmin/reset-password/${userId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.message) {
+                    alert(`✅ ${data.message}\n\n📝 Nueva contraseña: ${data.new_password}\n\n⚠️ IMPORTANTE: Anota esta contraseña y compártala de forma segura con el usuario.`);
+                    console.log(`Nueva contraseña para ${data.user}: ${data.new_password}`);
+                } else {
+                    alert('❌ Error al resetear la contraseña');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('❌ Error al resetear la contraseña');
+            });
+        }
+    </script>
 </body>
 </html>
