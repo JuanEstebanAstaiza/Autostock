@@ -13,7 +13,7 @@ def init_database():
     """Inicializar la base de datos creando todas las tablas"""
     print("Creando tablas en la base de datos...")
     Base.metadata.create_all(bind=engine)
-    print("✓ Tablas creadas exitosamente")
+    print("[OK] Tablas creadas exitosamente")
 
 def create_initial_data():
     """Crear datos iniciales: usuario superadmin y planes"""
@@ -31,7 +31,7 @@ def create_initial_data():
                 estado="activo"
             )
             db.add(superadmin)
-            print("✓ Usuario superadmin creado (usuario: superadmin, contraseña: admin123)")
+            print("[OK] Usuario superadmin creado (usuario: superadmin, contraseña: admin123)")
 
         # Verificar si ya existen planes
         existing_plans = db.query(Plan).count()
@@ -61,14 +61,14 @@ def create_initial_data():
             for plan in planes:
                 db.add(plan)
 
-            print("✓ Planes iniciales creados")
+            print("[OK] Planes iniciales creados")
 
         db.commit()
-        print("✓ Datos iniciales insertados correctamente")
+        print("[OK] Datos iniciales insertados correctamente")
 
     except Exception as e:
         db.rollback()
-        print(f"✗ Error al crear datos iniciales: {e}")
+        print(f"[ERROR] Error al crear datos iniciales: {e}")
     finally:
         db.close()
 
@@ -76,4 +76,4 @@ if __name__ == "__main__":
     print("Inicializando base de datos de Autostock...")
     init_database()
     create_initial_data()
-    print("🎉 Base de datos inicializada correctamente!")
+    print("EXITO: Base de datos inicializada correctamente!")
