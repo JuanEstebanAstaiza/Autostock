@@ -44,7 +44,7 @@ fi
 # Ejecutar la aplicación
 echo "🎯 Iniciando servidor..."
 echo ""
-echo "📱 La aplicación estará disponible en: http://localhost:8000"
+echo "📱 La aplicación estará disponible en: http://localhost:4553"
 echo "👤 Usuario SuperAdmin: superadmin / admin123"
 echo ""
 echo "Presiona Ctrl+C para detener el servidor"

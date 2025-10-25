@@ -101,7 +101,7 @@ python main.py
 python -m app.main
 ```
 
-La aplicación estará disponible en: http://localhost:8000
+La aplicación estará disponible en: http://localhost:4553
 
 ## 👥 Roles y Funcionalidades
 
@@ -313,7 +313,7 @@ POST /vendedor/ventas
 pip install uvicorn[standard]
 
 # Ejecutar con múltiples workers
-uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 4
+uvicorn app.main:app --host 0.0.0.0 --port 4553 --workers 4
 ```
 
 ### 2. Base de datos PostgreSQL (opcional)
@@ -333,7 +333,7 @@ server {
     server_name tu-dominio.com;
 
     location / {
-        proxy_pass http://127.0.0.1:8000;
+        proxy_pass http://127.0.0.1:4553;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
     }
