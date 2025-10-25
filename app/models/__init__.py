@@ -3,6 +3,12 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 import os
 
+# Crear directorio database si no existe
+database_dir = os.path.join(os.getcwd(), "database")
+if not os.path.exists(database_dir):
+    os.makedirs(database_dir)
+    print(f"[OK] Directorio database creado: {database_dir}")
+
 DATABASE_URL = "sqlite:///./database/inventario.db"
 
 engine = create_engine(

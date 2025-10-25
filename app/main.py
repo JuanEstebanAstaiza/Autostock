@@ -21,7 +21,13 @@ from routers.admin_negocio import router as admin_router
 from routers.vendedor import router as vendedor_router
 
 # Crear todas las tablas si no existen
-Base.metadata.create_all(bind=engine)
+try:
+    Base.metadata.create_all(bind=engine)
+    print("[OK] Base de datos inicializada correctamente")
+except Exception as e:
+    print(f"[ERROR] Error al inicializar la base de datos: {e}")
+    print("Asegurese de ejecutar 'python init_db.py' primero")
+    exit(1)
 
 # Crear aplicación FastAPI
 app = FastAPI(

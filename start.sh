@@ -41,6 +41,15 @@ else
     echo "✅ Base de datos ya existe"
 fi
 
+# Asegurar permisos del directorio database
+if [ -d "app/database" ]; then
+    chmod 755 app/database
+    if [ -f "app/database/inventario.db" ]; then
+        chmod 644 app/database/inventario.db
+    fi
+    echo "✅ Permisos de base de datos configurados"
+fi
+
 # Ejecutar la aplicación
 echo "🎯 Iniciando servidor..."
 echo ""

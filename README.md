@@ -360,6 +360,26 @@ sudo certbot --nginx -d tu-dominio.com
 
 ## 🐛 Solución de Problemas
 
+### Error: "unable to open database file"
+**Problema**: SQLite no puede acceder al archivo de base de datos en el servidor.
+
+**Solución**:
+```bash
+# 1. Crear directorio database manualmente
+mkdir -p app/database
+
+# 2. Asignar permisos correctos
+chmod 755 app/database
+
+# 3. Inicializar base de datos
+cd app
+python init_db.py
+cd ..
+
+# 4. Ejecutar aplicación
+python main.py
+```
+
 ### Error de base de datos
 ```bash
 # Reinicializar base de datos
@@ -380,9 +400,12 @@ pip install -r requirements.txt
 
 ### Puerto ocupado
 ```bash
-# Cambiar puerto
-uvicorn app.main:app --port 8001
+# Cambiar puerto (editar puerto en main.py)
+uvicorn app.main:app --port 4554
 ```
+
+### Error de codificación Unicode (Windows)
+Si ve errores como `UnicodeEncodeError`, los archivos ya están corregidos para compatibilidad con Windows.
 
 ## 📝 Licencia
 
